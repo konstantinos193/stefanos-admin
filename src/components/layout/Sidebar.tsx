@@ -38,7 +38,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             {isOpen && (
               <div className="flex flex-col">
                 <span className="text-sm font-bold text-gray-900">Stefadash</span>
-                <span className="text-xs text-gray-500">Admin Panel</span>
+                <span className="text-xs text-gray-500">Πίνακας Διαχείρισης</span>
               </div>
             )}
           </Link>

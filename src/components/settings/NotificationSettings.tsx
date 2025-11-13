@@ -4,12 +4,12 @@ export function NotificationSettings() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Notification Preferences</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Προτιμήσεις Ειδοποιήσεων</h2>
         <div className="space-y-4">
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div>
-              <h3 className="font-medium text-gray-900">Email Notifications</h3>
-              <p className="text-sm text-gray-600">Receive notifications via email</p>
+              <h3 className="font-medium text-gray-900">Ειδοποιήσεις Email</h3>
+              <p className="text-sm text-gray-600">Λήψη ειδοποιήσεων μέσω email</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" className="sr-only peer" defaultChecked />

@@ -10,26 +10,26 @@ export function UsersFilters() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
             type="text"
-            placeholder="Search users..."
+            placeholder="Αναζήτηση χρηστών..."
             className="input pl-10"
           />
         </div>
         <div className="flex items-center space-x-3">
           <select className="input">
-            <option>All Roles</option>
-            <option>Admin</option>
-            <option>User</option>
-            <option>Guest</option>
+            <option>Όλοι οι Ρόλοι</option>
+            <option>Διαχειριστής</option>
+            <option>Χρήστης</option>
+            <option>Επισκέπτης</option>
           </select>
           <select className="input">
-            <option>All Status</option>
-            <option>Active</option>
-            <option>Inactive</option>
-            <option>Pending</option>
+            <option>Όλες οι Καταστάσεις</option>
+            <option>Ενεργός</option>
+            <option>Ανενεργός</option>
+            <option>Σε Αναμονή</option>
           </select>
           <button className="btn btn-secondary flex items-center space-x-2">
             <Filter className="h-4 w-4" />
-            <span>Filter</span>
+            <span>Φίλτρο</span>
           </button>
         </div>
       </div>

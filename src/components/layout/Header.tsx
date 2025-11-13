@@ -23,7 +23,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           <Search className="h-4 w-4 text-gray-400" />
           <input
             type="text"
-            placeholder="Search..."
+            placeholder="Αναζήτηση..."
             className="bg-transparent border-none outline-none text-sm flex-1 text-gray-700 placeholder-gray-400"
           />
         </div>
@@ -41,7 +41,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
             <User className="h-4 w-4 text-white" />
           </div>
-          <span className="hidden md:block text-sm font-medium text-gray-700">Admin</span>
+          <span className="hidden md:block text-sm font-medium text-gray-700">Διαχειριστής</span>
         </button>
       </div>
     </header>

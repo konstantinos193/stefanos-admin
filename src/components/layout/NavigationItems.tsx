@@ -10,7 +10,19 @@ import {
   Calendar,
   FileText,
   Bell,
-  HelpCircle
+  HelpCircle,
+  CreditCard,
+  Star,
+  Wrench,
+  DoorOpen,
+  Layers,
+  Sparkles,
+  MessageSquare,
+  FileEdit,
+  Briefcase,
+  BookOpen,
+  FileSearch,
+  DollarSign
 } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -20,15 +32,26 @@ interface NavigationItemsProps {
 }
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, color: 'text-blue-500' },
-  { href: '/users', label: 'Users', icon: Users, color: 'text-green-500' },
-  { href: '/properties', label: 'Properties', icon: Building2, color: 'text-purple-500' },
-  { href: '/bookings', label: 'Bookings', icon: Calendar, color: 'text-orange-500' },
-  { href: '/analytics', label: 'Analytics', icon: BarChart3, color: 'text-pink-500' },
-  { href: '/reports', label: 'Reports', icon: FileText, color: 'text-cyan-500' },
-  { href: '/notifications', label: 'Notifications', icon: Bell, color: 'text-red-500' },
-  { href: '/settings', label: 'Settings', icon: Settings, color: 'text-gray-600' },
-  { href: '/help', label: 'Help', icon: HelpCircle, color: 'text-indigo-500' },
+  { href: '/dashboard', label: 'Πίνακας Ελέγχου', icon: LayoutDashboard, color: 'text-blue-500' },
+  { href: '/users', label: 'Χρήστες', icon: Users, color: 'text-green-500' },
+  { href: '/properties', label: 'Ακίνητα', icon: Building2, color: 'text-purple-500' },
+  { href: '/bookings', label: 'Κρατήσεις', icon: Calendar, color: 'text-orange-500' },
+  { href: '/payments', label: 'Πληρωμές', icon: CreditCard, color: 'text-emerald-500' },
+  { href: '/reviews', label: 'Αξιολογήσεις', icon: Star, color: 'text-yellow-500' },
+  { href: '/maintenance', label: 'Συντήρηση', icon: Wrench, color: 'text-red-600' },
+  { href: '/rooms', label: 'Δωμάτια', icon: DoorOpen, color: 'text-indigo-500' },
+  { href: '/property-groups', label: 'Ομάδες Ακινήτων', icon: Layers, color: 'text-teal-500' },
+  { href: '/cleaning', label: 'Καθαρισμός', icon: Sparkles, color: 'text-cyan-500' },
+  { href: '/messages', label: 'Μηνύματα', icon: MessageSquare, color: 'text-blue-600' },
+  { href: '/content', label: 'Διαχείριση Περιεχομένου', icon: FileEdit, color: 'text-violet-500' },
+  { href: '/services', label: 'Υπηρεσίες', icon: Briefcase, color: 'text-amber-500' },
+  { href: '/knowledge', label: 'Βάση Γνώσης', icon: BookOpen, color: 'text-slate-500' },
+  { href: '/analytics', label: 'Αναλυτικά', icon: BarChart3, color: 'text-pink-500' },
+  { href: '/reports', label: 'Αναφορές', icon: FileText, color: 'text-cyan-500' },
+  { href: '/audit-logs', label: 'Αρχείο Ελέγχου', icon: FileSearch, color: 'text-gray-700' },
+  { href: '/notifications', label: 'Ειδοποιήσεις', icon: Bell, color: 'text-red-500' },
+  { href: '/settings', label: 'Ρυθμίσεις', icon: Settings, color: 'text-gray-600' },
+  { href: '/help', label: 'Βοήθεια', icon: HelpCircle, color: 'text-indigo-500' },
 ]
 
 export function NavigationItems({ isOpen, pathname }: NavigationItemsProps) {
