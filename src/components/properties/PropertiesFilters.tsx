@@ -10,33 +10,33 @@ export function PropertiesFilters() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
             type="text"
-            placeholder="Search properties..."
+            placeholder="Αναζήτηση ακινήτων..."
             className="input pl-10"
           />
         </div>
         <div className="flex items-center space-x-3">
           <select className="input">
-            <option>All Types</option>
-            <option>Apartment</option>
-            <option>House</option>
-            <option>Villa</option>
-            <option>Commercial</option>
+            <option>Όλοι οι Τύποι</option>
+            <option>Διαμέρισμα</option>
+            <option>Κατοικία</option>
+            <option>Βίλα</option>
+            <option>Επαγγελματικό</option>
           </select>
           <select className="input">
-            <option>All Status</option>
-            <option>Available</option>
-            <option>Rented</option>
-            <option>Sold</option>
+            <option>Όλες οι Καταστάσεις</option>
+            <option>Διαθέσιμο</option>
+            <option>Ενοικιασμένο</option>
+            <option>Πωλημένο</option>
           </select>
           <select className="input">
-            <option>All Locations</option>
-            <option>Athens</option>
-            <option>Thessaloniki</option>
-            <option>Crete</option>
+            <option>Όλες οι Τοποθεσίες</option>
+            <option>Αθήνα</option>
+            <option>Θεσσαλονίκη</option>
+            <option>Κρήτη</option>
           </select>
           <button className="btn btn-secondary flex items-center space-x-2">
             <Filter className="h-4 w-4" />
-            <span>Filter</span>
+            <span>Φίλτρο</span>
           </button>
         </div>
       </div>

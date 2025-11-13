@@ -5,7 +5,7 @@ import { Download, Eye, Calendar, FileText } from 'lucide-react'
 const mockReports = [
   {
     id: 1,
-    name: 'Monthly Revenue Report',
+    name: 'Μηνιαία Αναφορά Εσόδων',
     type: 'Revenue',
     generatedDate: '2024-11-01',
     size: '2.4 MB',
@@ -13,7 +13,7 @@ const mockReports = [
   },
   {
     id: 2,
-    name: 'User Activity Report',
+    name: 'Αναφορά Δραστηριότητας Χρηστών',
     type: 'Users',
     generatedDate: '2024-11-05',
     size: '1.8 MB',
@@ -21,7 +21,7 @@ const mockReports = [
   },
   {
     id: 3,
-    name: 'Property Performance Report',
+    name: 'Αναφορά Απόδοσης Ακινήτων',
     type: 'Properties',
     generatedDate: '2024-11-10',
     size: '3.2 MB',
@@ -29,7 +29,7 @@ const mockReports = [
   },
   {
     id: 4,
-    name: 'Booking Analysis Report',
+    name: 'Αναφορά Ανάλυσης Κρατήσεων',
     type: 'Bookings',
     generatedDate: '2024-11-12',
     size: '2.1 MB',
@@ -53,6 +53,21 @@ export function ReportsList() {
     }
   }
 
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case 'Revenue':
+        return 'Έσοδα'
+      case 'Users':
+        return 'Χρήστες'
+      case 'Properties':
+        return 'Ακίνητα'
+      case 'Bookings':
+        return 'Κρατήσεις'
+      default:
+        return type
+    }
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {mockReports.map((report) => (
@@ -64,32 +79,32 @@ export function ReportsList() {
                 <h3 className="text-lg font-bold text-gray-900">{report.name}</h3>
               </div>
               <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getTypeColor(report.type)}`}>
-                {report.type}
+                {getTypeLabel(report.type)}
               </span>
             </div>
           </div>
           <div className="space-y-2 mb-4">
             <div className="flex items-center text-sm text-gray-600">
               <Calendar className="h-4 w-4 mr-2" />
-              <span>Generated: {report.generatedDate}</span>
+              <span>Δημιουργήθηκε: {report.generatedDate}</span>
             </div>
             <div className="text-sm text-gray-600">
-              Size: {report.size}
+              Μέγεθος: {report.size}
             </div>
             <div className="text-sm">
-              Status: <span className={`font-medium ${report.status === 'Ready' ? 'text-green-600' : 'text-yellow-600'}`}>
-                {report.status}
+              Κατάσταση: <span className={`font-medium ${report.status === 'Ready' ? 'text-green-600' : 'text-yellow-600'}`}>
+                {report.status === 'Ready' ? 'Έτοιμο' : 'Σε Δημιουργία'}
               </span>
             </div>
           </div>
           <div className="flex items-center space-x-2 pt-4 border-t border-gray-200">
             <button className="flex-1 btn btn-secondary flex items-center justify-center space-x-2">
               <Eye className="h-4 w-4" />
-              <span>View</span>
+              <span>Προβολή</span>
             </button>
             <button className="flex-1 btn btn-primary flex items-center justify-center space-x-2">
               <Download className="h-4 w-4" />
-              <span>Download</span>
+              <span>Λήψη</span>
             </button>
           </div>
         </div>

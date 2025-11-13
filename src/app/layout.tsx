@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Space_Grotesk } from 'next/font/google'
 import './globals.css'
+import { AuthProvider } from '@/lib/auth/AuthContext'
 
 const spaceGrotesk = Space_Grotesk({ 
   subsets: ['latin'],
@@ -29,7 +30,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body className={spaceGrotesk.className}>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   )

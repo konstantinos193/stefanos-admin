@@ -2,12 +2,15 @@
 
 import { LogOut, User } from 'lucide-react'
 import clsx from 'clsx'
+import { useAuth } from '@/lib/auth/AuthContext'
 
 interface SidebarFooterProps {
   isOpen: boolean
 }
 
 export function SidebarFooter({ isOpen }: SidebarFooterProps) {
+  const { user, logout } = useAuth()
+
   return (
     <div className="border-t border-gray-200 p-4 space-y-2">
       {/* User Profile */}
@@ -20,14 +23,15 @@ export function SidebarFooter({ isOpen }: SidebarFooterProps) {
         </div>
         {isOpen && (
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">Admin User</p>
-            <p className="text-xs text-gray-500 truncate">admin@stefanos.com</p>
+            <p className="text-sm font-medium text-gray-900 truncate">{user?.name || 'Admin User'}</p>
+            <p className="text-xs text-gray-500 truncate">{user?.email || 'admin@stefanos.com'}</p>
           </div>
         )}
       </div>
 
       {/* Logout Button */}
       <button
+        onClick={logout}
         className={clsx(
           'w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all duration-200',
           !isOpen && 'justify-center'

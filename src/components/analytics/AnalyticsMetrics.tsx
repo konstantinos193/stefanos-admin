@@ -4,7 +4,7 @@ import { TrendingUp, TrendingDown, Eye, Users, DollarSign, Calendar } from 'luci
 
 const metrics = [
   {
-    title: 'Page Views',
+    title: 'Προβολές Σελίδας',
     value: '45,231',
     change: '+12.5%',
     trend: 'up',
@@ -13,7 +13,7 @@ const metrics = [
     bgColor: 'bg-blue-50',
   },
   {
-    title: 'Active Users',
+    title: 'Ενεργοί Χρήστες',
     value: '2,543',
     change: '+8.2%',
     trend: 'up',
@@ -22,8 +22,8 @@ const metrics = [
     bgColor: 'bg-green-50',
   },
   {
-    title: 'Revenue',
-    value: '$124,567',
+    title: 'Έσοδα',
+    value: '€124,567',
     change: '+15.3%',
     trend: 'up',
     icon: DollarSign,
@@ -31,7 +31,7 @@ const metrics = [
     bgColor: 'bg-purple-50',
   },
   {
-    title: 'Bookings',
+    title: 'Κρατήσεις',
     value: '456',
     change: '-3.1%',
     trend: 'down',
@@ -57,7 +57,7 @@ export function AnalyticsMetrics() {
                 <div className={`flex items-center space-x-1 mt-2 ${metric.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
                   <TrendIcon className="h-4 w-4" />
                   <span className="text-sm font-medium">{metric.change}</span>
-                  <span className="text-sm text-gray-500">vs last period</span>
+                  <span className="text-sm text-gray-500">σε σχέση με την προηγούμενη περίοδο</span>
                 </div>
               </div>
               <div className={`${metric.bgColor} p-3 rounded-lg`}>
