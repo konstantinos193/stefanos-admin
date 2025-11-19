@@ -56,7 +56,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('admin_user', JSON.stringify(response.user))
       authApi.setToken(response.token)
     } catch (error: any) {
-      throw new Error(error.message || 'Login failed')
+      // Preserve the original error message which now includes helpful network error details
+      const errorMessage = error.message || 'Login failed. Please check your credentials and try again.'
+      throw new Error(errorMessage)
     }
   }
 

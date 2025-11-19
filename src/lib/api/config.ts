@@ -25,22 +25,47 @@ export async function apiRequest<T>(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${apiConfig.baseURL}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  try {
+    const response = await fetch(`${apiConfig.baseURL}${endpoint}`, {
+      ...options,
+      headers,
+    });
 
-  if (!response.ok) {
-    // Don't log 401 errors - they're expected when not authenticated
-    if (response.status === 401) {
-      const error = await response.json().catch(() => ({ message: 'Unauthorized' }));
-      throw new Error(error.message || 'Unauthorized');
+    if (!response.ok) {
+      // Don't log 401 errors - they're expected when not authenticated
+      if (response.status === 401) {
+        let errorMessage = 'Unauthorized'
+        try {
+          const error = await response.json()
+          errorMessage = error.message || errorMessage
+        } catch {
+          // If response is not JSON, use status text
+          errorMessage = response.statusText || errorMessage
+        }
+        throw new Error(errorMessage)
+      }
+      
+      let errorMessage = 'An error occurred'
+      try {
+        const error = await response.json()
+        errorMessage = error.message || errorMessage
+      } catch {
+        // If response is not JSON, use status text
+        errorMessage = response.statusText || `Server error (${response.status})`
+      }
+      throw new Error(errorMessage)
     }
-    
-    const error = await response.json().catch(() => ({ message: 'An error occurred' }));
-    throw new Error(error.message || `HTTP error! status: ${response.status}`);
-  }
 
-  return response.json();
+    return response.json()
+  } catch (error: any) {
+    // Handle network errors (Failed to fetch, CORS, etc.)
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new Error(
+        `Cannot connect to server. Please ensure the backend is running at ${apiConfig.baseURL}`
+      )
+    }
+    // Re-throw other errors as-is
+    throw error
+  }
 }
 

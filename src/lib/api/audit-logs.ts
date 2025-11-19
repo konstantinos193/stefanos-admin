@@ -72,17 +72,36 @@ export const auditLogsApi = {
       ? localStorage.getItem('admin_token') || localStorage.getItem('token')
       : null;
     
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/audit-logs/export${queryString ? `?${queryString}` : ''}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+    
+    try {
+      const response = await fetch(`${apiBaseUrl}/audit-logs/export${queryString ? `?${queryString}` : ''}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
 
-    if (!response.ok) {
-      throw new Error('Failed to export audit logs');
+      if (!response.ok) {
+        let errorMessage = 'Failed to export audit logs'
+        try {
+          const error = await response.json()
+          errorMessage = error.message || errorMessage
+        } catch {
+          errorMessage = response.statusText || `Server error (${response.status})`
+        }
+        throw new Error(errorMessage)
+      }
+
+      return response.blob()
+    } catch (error: any) {
+      // Handle network errors (Failed to fetch, CORS, etc.)
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error(
+          `Cannot connect to server. Please ensure the backend is running at ${apiBaseUrl}`
+        )
+      }
+      throw error
     }
-
-    return response.blob();
   },
 };
 
