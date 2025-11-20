@@ -1,105 +1,98 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useImperativeHandle, forwardRef } from 'react'
 import { Edit, Trash2, Eye, MapPin, Bed, Bath, Square } from 'lucide-react'
 import { propertiesApi } from '@/lib/api/properties'
 import { Property } from '@/lib/api/types'
+import { matchesSearch } from '@/lib/utils/textNormalization'
 
-const mockProperties = [
-  {
-    id: 1,
-    title: 'Σύγχρονο Διαμέρισμα στην Αθήνα',
-    location: 'Αθήνα, Ελλάδα',
-    type: 'Apartment',
-    price: '€1,200/μήνα',
-    bedrooms: 2,
-    bathrooms: 1,
-    area: 85,
-    status: 'Available',
-    image: 'bg-gradient-to-br from-blue-400 to-purple-500',
-  },
-  {
-    id: 2,
-    title: 'Πολυτελής Βίλα στη Μύκονο',
-    location: 'Μύκονος, Ελλάδα',
-    type: 'Villa',
-    price: '€5,000/μήνα',
-    bedrooms: 4,
-    bathrooms: 3,
-    area: 250,
-    status: 'Rented',
-    image: 'bg-gradient-to-br from-purple-400 to-pink-500',
-  },
-  {
-    id: 3,
-    title: 'Ζεστό Σπίτι στη Θεσσαλονίκη',
-    location: 'Θεσσαλονίκη, Ελλάδα',
-    type: 'House',
-    price: '€800/μήνα',
-    bedrooms: 3,
-    bathrooms: 2,
-    area: 120,
-    status: 'Available',
-    image: 'bg-gradient-to-br from-green-400 to-cyan-500',
-  },
-  {
-    id: 4,
-    title: 'Στούντιο Διαμέρισμα στην Κρήτη',
-    location: 'Κρήτη, Ελλάδα',
-    type: 'Apartment',
-    price: '€600/μήνα',
-    bedrooms: 1,
-    bathrooms: 1,
-    area: 45,
-    status: 'Available',
-    image: 'bg-gradient-to-br from-orange-400 to-red-500',
-  },
-  {
-    id: 5,
-    title: 'Επαγγελματικός Χώρος στην Αθήνα',
-    location: 'Αθήνα, Ελλάδα',
-    type: 'Commercial',
-    price: '€2,500/μήνα',
-    bedrooms: 0,
-    bathrooms: 2,
-    area: 200,
-    status: 'Available',
-    image: 'bg-gradient-to-br from-indigo-400 to-blue-500',
-  },
-  {
-    id: 6,
-    title: 'Βίλα Δίπλα στη Θάλασσα στη Σαντορίνη',
-    location: 'Σαντορίνη, Ελλάδα',
-    type: 'Villa',
-    price: '€8,000/μήνα',
-    bedrooms: 5,
-    bathrooms: 4,
-    area: 350,
-    status: 'Rented',
-    image: 'bg-gradient-to-br from-pink-400 to-purple-500',
-  },
-]
+export interface PropertiesGridRef {
+  refresh: () => void
+}
 
-export function PropertiesGrid() {
+interface PropertiesGridProps {
+  searchQuery?: string
+  typeFilter?: string
+  statusFilter?: string
+  cityFilter?: string
+  onEditProperty?: (property: Property) => void
+  onDeleteProperty?: (property: Property) => void
+  onViewProperty?: (property: Property) => void
+}
+
+export const PropertiesGrid = forwardRef<PropertiesGridRef, PropertiesGridProps>(({ 
+  searchQuery = '', 
+  typeFilter = 'all', 
+  statusFilter = 'all', 
+  cityFilter = 'all',
+  onEditProperty,
+  onDeleteProperty,
+  onViewProperty
+}, ref) => {
+  const [allProperties, setAllProperties] = useState<Property[]>([])
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    async function fetchProperties() {
-      try {
-        setLoading(true)
-        const response = await propertiesApi.getAll({ limit: 12 })
-        setProperties(response.data?.properties || [])
-      } catch (error) {
-        console.error('Error fetching properties:', error)
-        setProperties([])
-      } finally {
-        setLoading(false)
-      }
+  const fetchProperties = async () => {
+    try {
+      setLoading(true)
+      const response = await propertiesApi.getAll({ limit: 100 })
+      const fetchedProperties = response.data?.properties || []
+      setAllProperties(fetchedProperties)
+      return fetchedProperties
+    } catch (error) {
+      console.error('Error fetching properties:', error)
+      setAllProperties([])
+      return []
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchProperties()
   }, [])
+
+  useImperativeHandle(ref, () => ({
+    refresh: () => {
+      fetchProperties()
+    }
+  }))
+
+  // Apply filters
+  useEffect(() => {
+    let filtered = [...allProperties]
+
+    // Search filter (accent-insensitive and case-insensitive)
+    if (searchQuery.trim()) {
+      filtered = filtered.filter((property) => {
+        return (
+          matchesSearch(property.titleGr || '', searchQuery) ||
+          matchesSearch(property.titleEn || '', searchQuery) ||
+          matchesSearch(property.city || '', searchQuery) ||
+          matchesSearch(property.address || '', searchQuery) ||
+          matchesSearch(property.country || '', searchQuery)
+        )
+      })
+    }
+
+    // Type filter
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter((property) => property.type === typeFilter)
+    }
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter((property) => property.status === statusFilter)
+    }
+
+    // City filter
+    if (cityFilter !== 'all') {
+      filtered = filtered.filter((property) => property.city === cityFilter)
+    }
+
+    setProperties(filtered)
+  }, [allProperties, searchQuery, typeFilter, statusFilter, cityFilter])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -228,13 +221,25 @@ export function PropertiesGrid() {
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                  <button 
+                    onClick={() => onViewProperty?.(property)}
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Προβολή"
+                  >
                     <Eye className="h-4 w-4" />
                   </button>
-                  <button className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors">
+                  <button 
+                    onClick={() => onEditProperty?.(property)}
+                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                    title="Επεξεργασία"
+                  >
                     <Edit className="h-4 w-4" />
                   </button>
-                  <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                  <button 
+                    onClick={() => onDeleteProperty?.(property)}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Διαγραφή"
+                  >
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
@@ -245,5 +250,7 @@ export function PropertiesGrid() {
       )}
     </div>
   )
-}
+})
+
+PropertiesGrid.displayName = 'PropertiesGrid'
 

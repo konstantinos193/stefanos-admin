@@ -38,7 +38,7 @@ export default function LoginPage() {
             <div className="flex justify-center mb-4">
               <div className="relative h-16 w-16">
                 <Image
-                  src="/logo.png"
+                  src="/logoetc.png"
                   alt="Stefadash Logo"
                   width={64}
                   height={64}

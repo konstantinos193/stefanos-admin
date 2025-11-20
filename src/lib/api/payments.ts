@@ -79,5 +79,26 @@ export const paymentsApi = {
       body: JSON.stringify({ amount, reason }),
     });
   },
+
+  async getAllForSearch(): Promise<Payment[]> {
+    const allPayments: Payment[] = []
+    let page = 1
+    let hasMore = true
+
+    while (hasMore) {
+      const response = await this.getAll({ page, limit: 100 })
+      const payments = response.data?.payments || []
+      allPayments.push(...payments)
+      
+      hasMore = payments.length === 100 && page < (response.data?.pagination?.totalPages || 1)
+      page++
+    }
+
+    return allPayments
+  },
+
+  async getAllForExport(): Promise<Payment[]> {
+    return this.getAllForSearch()
+  },
 };
 

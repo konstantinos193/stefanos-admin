@@ -1,30 +1,99 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useImperativeHandle, forwardRef } from 'react'
 import { Edit, Trash2, CheckCircle, XCircle, Clock } from 'lucide-react'
 import { bookingsApi } from '@/lib/api/bookings'
 import { Booking } from '@/lib/api/types'
+import { matchesSearch } from '@/lib/utils/textNormalization'
 
-export function BookingsTable() {
+export interface BookingsTableRef {
+  refresh: () => void
+}
+
+interface BookingsTableProps {
+  searchQuery?: string
+  statusFilter?: string
+  dateFilter?: string
+  onEditBooking?: (booking: Booking) => void
+  onDeleteBooking?: (booking: Booking) => void
+}
+
+export const BookingsTable = forwardRef<BookingsTableRef, BookingsTableProps>(({ 
+  searchQuery = '', 
+  statusFilter = 'all', 
+  dateFilter = '',
+  onEditBooking,
+  onDeleteBooking
+}, ref) => {
+  const [allBookings, setAllBookings] = useState<Booking[]>([])
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    async function fetchBookings() {
-      try {
-        setLoading(true)
-        const response = await bookingsApi.getAll({ limit: 50 })
-        setBookings(response.data?.bookings || [])
-      } catch (error) {
-        console.error('Error fetching bookings:', error)
-        setBookings([])
-      } finally {
-        setLoading(false)
-      }
+  const fetchBookings = async () => {
+    try {
+      setLoading(true)
+      // Always fetch all bookings for client-side filtering
+      const response = await bookingsApi.getAll({ limit: 100 })
+      const fetchedBookings = response.data?.bookings || []
+      setAllBookings(fetchedBookings)
+      return fetchedBookings
+    } catch (error) {
+      console.error('Error fetching bookings:', error)
+      setAllBookings([])
+      return []
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchBookings()
   }, [])
+
+  useImperativeHandle(ref, () => ({
+    refresh: () => {
+      fetchBookings()
+    }
+  }))
+
+  // Apply filters
+  useEffect(() => {
+    let filtered = [...allBookings]
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter((booking) => booking.status === statusFilter)
+    }
+
+    // Search filter (accent-insensitive and case-insensitive)
+    if (searchQuery.trim()) {
+      filtered = filtered.filter((booking) => {
+        return (
+          matchesSearch(booking.guestName || '', searchQuery) ||
+          matchesSearch(booking.guestEmail || '', searchQuery) ||
+          matchesSearch(booking.guestPhone || '', searchQuery) ||
+          matchesSearch(booking.property?.titleGr || '', searchQuery) ||
+          matchesSearch(booking.id, searchQuery)
+        )
+      })
+    }
+
+    // Date filter
+    if (dateFilter) {
+      const filterDate = new Date(dateFilter)
+      filtered = filtered.filter((booking) => {
+        const checkIn = new Date(booking.checkIn)
+        const checkOut = new Date(booking.checkOut)
+        return (
+          checkIn.toDateString() === filterDate.toDateString() ||
+          checkOut.toDateString() === filterDate.toDateString() ||
+          (checkIn <= filterDate && checkOut >= filterDate)
+        )
+      })
+    }
+
+    setBookings(filtered)
+  }, [allBookings, searchQuery, statusFilter, dateFilter])
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'CONFIRMED':
@@ -108,28 +177,28 @@ export function BookingsTable() {
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ID Κράτησης
+                ID ΚΡΑΤΗΣΗΣ
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Ακίνητο
+                ΑΚΙΝΗΤΟ
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Επισκέπτης
+                ΕΠΙΣΚΕΠΤΗΣ
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Άφιξη
+                ΑΦΙΞΗ
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Αναχώρηση
+                ΑΝΑΧΩΡΗΣΗ
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Σύνολο
+                ΣΥΝΟΛΟ
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Κατάσταση
+                ΚΑΤΑΣΤΑΣΗ
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Ενέργειες
+                ΕΝΕΡΓΕΙΕΣ
               </th>
             </tr>
           </thead>
@@ -175,10 +244,18 @@ export function BookingsTable() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end space-x-2">
-                        <button className="text-blue-600 hover:text-blue-900 p-1">
+                        <button 
+                          onClick={() => onEditBooking?.(booking)}
+                          className="text-blue-600 hover:text-blue-900 p-1"
+                          title="Επεξεργασία"
+                        >
                           <Edit className="h-4 w-4" />
                         </button>
-                        <button className="text-red-600 hover:text-red-900 p-1">
+                        <button 
+                          onClick={() => onDeleteBooking?.(booking)}
+                          className="text-red-600 hover:text-red-900 p-1"
+                          title="Διαγραφή"
+                        >
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
@@ -192,5 +269,7 @@ export function BookingsTable() {
       </div>
     </div>
   )
-}
+})
+
+BookingsTable.displayName = 'BookingsTable'
 

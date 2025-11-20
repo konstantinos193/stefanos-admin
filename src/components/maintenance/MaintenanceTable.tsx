@@ -87,12 +87,12 @@ export function MaintenanceTable() {
         <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Τίτλος</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ακίνητο</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Προτεραιότητα</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Κατάσταση</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ημερομηνία</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Ενέργειες</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ΤΙΤΛΟΣ</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ΑΚΙΝΗΤΟ</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ΠΡΟΤΕΡΑΙΟΤΗΤΑ</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ΚΑΤΑΣΤΑΣΗ</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ΗΜΕΡΟΜΗΝΙΑ</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">ΕΝΕΡΓΕΙΕΣ</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">

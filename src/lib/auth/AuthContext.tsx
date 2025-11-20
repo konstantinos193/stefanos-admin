@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { authApi } from './authApi'
+import { setGlobalLogoutHandler } from '../api/config'
 
 interface User {
   id: string
@@ -70,6 +71,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     authApi.setToken(null)
     router.push('/login')
   }
+
+  // Register logout handler globally for API error handling
+  useEffect(() => {
+    setGlobalLogoutHandler(logout)
+    return () => {
+      setGlobalLogoutHandler(() => {}) // Clear on unmount
+    }
+  }, [router])
 
   return (
     <AuthContext.Provider

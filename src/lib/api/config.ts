@@ -7,6 +7,13 @@ export const apiConfig = {
   },
 };
 
+// Global logout handler - will be set by AuthProvider
+let globalLogoutHandler: (() => void) | null = null;
+
+export function setGlobalLogoutHandler(handler: () => void) {
+  globalLogoutHandler = handler;
+}
+
 export async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
@@ -32,9 +39,24 @@ export async function apiRequest<T>(
     });
 
     if (!response.ok) {
-      // Don't log 401 errors - they're expected when not authenticated
+      // Handle 401 Unauthorized - token expired or invalid
       if (response.status === 401) {
-        let errorMessage = 'Unauthorized'
+        // Clear invalid token
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('admin_token')
+          localStorage.removeItem('admin_user')
+          localStorage.removeItem('token')
+        }
+        
+        // Call global logout handler if available
+        if (globalLogoutHandler) {
+          globalLogoutHandler()
+        } else if (typeof window !== 'undefined') {
+          // Fallback: redirect to login if handler not set
+          window.location.href = '/login'
+        }
+        
+        let errorMessage = 'Invalid or expired token'
         try {
           const error = await response.json()
           errorMessage = error.message || errorMessage

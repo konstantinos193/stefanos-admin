@@ -1,8 +1,28 @@
 'use client'
 
-import { Search, Filter } from 'lucide-react'
+import { Search, Filter, X } from 'lucide-react'
 
-export function UsersFilters() {
+interface UsersFiltersProps {
+  searchQuery: string
+  roleFilter: string
+  statusFilter: string
+  onSearchChange: (value: string) => void
+  onRoleChange: (value: string) => void
+  onStatusChange: (value: string) => void
+  onClearFilters: () => void
+}
+
+export function UsersFilters({
+  searchQuery,
+  roleFilter,
+  statusFilter,
+  onSearchChange,
+  onRoleChange,
+  onStatusChange,
+  onClearFilters,
+}: UsersFiltersProps) {
+  const hasActiveFilters = searchQuery || roleFilter !== 'all' || statusFilter !== 'all'
+
   return (
     <div className="card">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 md:space-x-4">
@@ -11,26 +31,42 @@ export function UsersFilters() {
           <input
             type="text"
             placeholder="Αναζήτηση χρηστών..."
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
             className="input pl-10"
           />
         </div>
         <div className="flex items-center space-x-3">
-          <select className="input">
-            <option>Όλοι οι Ρόλοι</option>
-            <option>Διαχειριστής</option>
-            <option>Χρήστης</option>
-            <option>Επισκέπτης</option>
+          <select
+            value={roleFilter}
+            onChange={(e) => onRoleChange(e.target.value)}
+            className="input"
+          >
+            <option value="all">Όλοι οι Ρόλοι</option>
+            <option value="ADMIN">Διαχειριστής</option>
+            <option value="USER">Χρήστης</option>
+            <option value="PROPERTY_OWNER">Ιδιοκτήτης</option>
+            <option value="MANAGER">Διαχειριστής</option>
           </select>
-          <select className="input">
-            <option>Όλες οι Καταστάσεις</option>
-            <option>Ενεργός</option>
-            <option>Ανενεργός</option>
-            <option>Σε Αναμονή</option>
+          <select
+            value={statusFilter}
+            onChange={(e) => onStatusChange(e.target.value)}
+            className="input"
+          >
+            <option value="all">Όλες οι Καταστάσεις</option>
+            <option value="active">Ενεργός</option>
+            <option value="inactive">Ανενεργός</option>
           </select>
-          <button className="btn btn-secondary flex items-center space-x-2">
-            <Filter className="h-4 w-4" />
-            <span>Φίλτρο</span>
-          </button>
+          {hasActiveFilters && (
+            <button
+              onClick={onClearFilters}
+              className="btn btn-secondary flex items-center space-x-2"
+              title="Καθαρισμός φίλτρων"
+            >
+              <X className="h-4 w-4" />
+              <span>Καθαρισμός</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

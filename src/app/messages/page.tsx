@@ -1,25 +1,61 @@
-import { MessageSquare, Plus } from 'lucide-react'
+'use client'
+
+import { useState, useRef } from 'react'
+import { MessagesHeader } from '@/components/messages/MessagesHeader'
+import { MessagesTable, MessagesTableRef } from '@/components/messages/MessagesTable'
+import { MessagesFilters } from '@/components/messages/MessagesFilters'
+import { SendMessageModal } from '@/components/messages/SendMessageModal'
 
 export default function MessagesPage() {
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [readFilter, setReadFilter] = useState('all')
+  const [bookingFilter, setBookingFilter] = useState('')
+  const messagesTableRef = useRef<MessagesTableRef>(null)
+
+  const handleNewMessage = () => {
+    setIsModalOpen(true)
+  }
+
+  const handleMessageSent = async () => {
+    setIsModalOpen(false)
+    // Small delay to ensure backend has processed the message
+    await new Promise(resolve => setTimeout(resolve, 300))
+    // Refresh the messages table
+    if (messagesTableRef.current) {
+      messagesTableRef.current.refresh()
+    }
+  }
+
+  const handleClearFilters = () => {
+    setSearchQuery('')
+    setReadFilter('all')
+    setBookingFilter('')
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Μηνύματα</h1>
-          <p className="text-gray-600 mt-1">Διαχείριση μηνυμάτων και επικοινωνίας</p>
-        </div>
-        <button className="btn btn-primary flex items-center space-x-2">
-          <Plus className="h-4 w-4" />
-          <span>Νέο Μήνυμα</span>
-        </button>
-      </div>
-      <div className="card">
-        <div className="p-6 text-center text-gray-500">
-          <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-          <p>Διαθέσιμο σύντομα</p>
-        </div>
-      </div>
+      <MessagesHeader onNewMessage={handleNewMessage} />
+      <MessagesFilters
+        searchQuery={searchQuery}
+        readFilter={readFilter}
+        bookingFilter={bookingFilter}
+        onSearchChange={setSearchQuery}
+        onReadChange={setReadFilter}
+        onBookingChange={setBookingFilter}
+        onClearFilters={handleClearFilters}
+      />
+      <MessagesTable
+        ref={messagesTableRef}
+        searchQuery={searchQuery}
+        readFilter={readFilter}
+        bookingFilter={bookingFilter}
+      />
+      <SendMessageModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={handleMessageSent}
+      />
     </div>
   )
 }
-

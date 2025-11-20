@@ -26,7 +26,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           <Link href="/dashboard" className="flex items-center space-x-3">
             <div className="relative h-10 w-10 flex-shrink-0">
               <Image
-                src="/logo.png"
+                src="/logoetc.png"
                 alt="Stefadash Logo"
                 width={40}
                 height={40}

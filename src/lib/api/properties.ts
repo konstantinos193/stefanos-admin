@@ -52,5 +52,26 @@ export const propertiesApi = {
       method: 'DELETE',
     });
   },
+
+  async getAllForSearch(): Promise<Property[]> {
+    const allProperties: Property[] = []
+    let page = 1
+    let hasMore = true
+
+    while (hasMore) {
+      const response = await this.getAll({ page, limit: 100 })
+      const properties = response.data?.properties || []
+      allProperties.push(...properties)
+      
+      hasMore = properties.length === 100 && page < (response.data?.pagination?.totalPages || 1)
+      page++
+    }
+
+    return allProperties
+  },
+
+  async getAllForExport(): Promise<Property[]> {
+    return this.getAllForSearch()
+  },
 };
 

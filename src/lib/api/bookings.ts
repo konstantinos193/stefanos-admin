@@ -43,5 +43,26 @@ export const bookingsApi = {
       body: JSON.stringify({ reason }),
     });
   },
+
+  async getAllForSearch(): Promise<Booking[]> {
+    const allBookings: Booking[] = []
+    let page = 1
+    let hasMore = true
+
+    while (hasMore) {
+      const response = await this.getAll({ page, limit: 100 })
+      const bookings = response.data?.bookings || []
+      allBookings.push(...bookings)
+      
+      hasMore = bookings.length === 100 && page < (response.data?.pagination?.totalPages || 1)
+      page++
+    }
+
+    return allBookings
+  },
+
+  async getAllForExport(): Promise<Booking[]> {
+    return this.getAllForSearch()
+  },
 };
 

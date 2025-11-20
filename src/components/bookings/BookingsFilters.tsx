@@ -1,8 +1,28 @@
 'use client'
 
-import { Search, Filter } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 
-export function BookingsFilters() {
+interface BookingsFiltersProps {
+  searchQuery: string
+  statusFilter: string
+  dateFilter: string
+  onSearchChange: (value: string) => void
+  onStatusChange: (value: string) => void
+  onDateChange: (value: string) => void
+  onClearFilters: () => void
+}
+
+export function BookingsFilters({
+  searchQuery,
+  statusFilter,
+  dateFilter,
+  onSearchChange,
+  onStatusChange,
+  onDateChange,
+  onClearFilters,
+}: BookingsFiltersProps) {
+  const hasActiveFilters = searchQuery || statusFilter !== 'all' || dateFilter !== ''
+
   return (
     <div className="card">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 md:space-x-4">
@@ -11,22 +31,41 @@ export function BookingsFilters() {
           <input
             type="text"
             placeholder="Αναζήτηση κρατήσεων..."
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
             className="input pl-10"
           />
         </div>
         <div className="flex items-center space-x-3">
-          <select className="input">
-            <option>Όλες οι Καταστάσεις</option>
-            <option>Επιβεβαιωμένη</option>
-            <option>Σε Αναμονή</option>
-            <option>Ακυρωμένη</option>
-            <option>Ολοκληρωμένη</option>
+          <select
+            value={statusFilter}
+            onChange={(e) => onStatusChange(e.target.value)}
+            className="input"
+          >
+            <option value="all">Όλες οι Καταστάσεις</option>
+            <option value="CONFIRMED">Επιβεβαιωμένη</option>
+            <option value="PENDING">Σε Αναμονή</option>
+            <option value="COMPLETED">Ολοκληρωμένη</option>
+            <option value="CHECKED_IN">Check-in</option>
+            <option value="CANCELLED">Ακυρωμένη</option>
+            <option value="NO_SHOW">Απουσία</option>
           </select>
-          <input type="date" className="input" />
-          <button className="btn btn-secondary flex items-center space-x-2">
-            <Filter className="h-4 w-4" />
-            <span>Φίλτρο</span>
-          </button>
+          <input
+            type="date"
+            value={dateFilter}
+            onChange={(e) => onDateChange(e.target.value)}
+            className="input"
+          />
+          {hasActiveFilters && (
+            <button
+              onClick={onClearFilters}
+              className="btn btn-secondary flex items-center space-x-2"
+              title="Καθαρισμός φίλτρων"
+            >
+              <X className="h-4 w-4" />
+              <span>Καθαρισμός</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

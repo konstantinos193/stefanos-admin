@@ -16,9 +16,9 @@ export const metadata: Metadata = {
   },
   description: 'Admin panel for Stefanos Spyros Real Estate management',
   icons: {
-    icon: '/logo.png',
-    shortcut: '/logo.png',
-    apple: '/logo.png',
+    icon: '/logoetc.png',
+    shortcut: '/logoetc.png',
+    apple: '/logoetc.png',
   },
 }
 
