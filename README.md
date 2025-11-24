@@ -1,6 +1,6 @@
 # Stefadash Admin Panel
 
-A modern, bright-colored admin panel built with Next.js 16 for managing Stefanos Spyros Real Estate platform.
+A modern, bright-colored admin panel built with Next.js 16 for managing STEFANOS MALESKOS Real Estate platform.
 
 ## Features
 

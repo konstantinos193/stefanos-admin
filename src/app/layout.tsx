@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     default: 'Stefadash Admin Panel',
     template: '%s | Stefadash Admin'
   },
-  description: 'Admin panel for Stefanos Spyros Real Estate management',
+  description: 'Admin panel for STEFANOS MALESKOS Real Estate management',
   icons: {
     icon: '/logoetc.png',
     shortcut: '/logoetc.png',
