@@ -1,34 +1,32 @@
 import { StatsCards } from '@/components/dashboard/StatsCards'
 import { RecentActivity } from '@/components/dashboard/RecentActivity'
 import { QuickActions } from '@/components/dashboard/QuickActions'
-import { ChartsSection } from '@/components/dashboard/ChartsSection'
-import { TopProperties } from '@/components/dashboard/TopProperties'
-import { RecentReviews } from '@/components/dashboard/RecentReviews'
 import { MaintenanceAlerts } from '@/components/dashboard/MaintenanceAlerts'
 import { PaymentStatus } from '@/components/dashboard/PaymentStatus'
 
 export default function DashboardPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Welcome Section */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Πίνακας Ελέγχου</h1>
-        <p className="text-gray-600 mt-1">Καλώς ήρθατε! Δείτε τι συμβαίνει σήμερα.</p>
+        <h1 className="text-3xl font-bold text-slate-100">Καλώς ήρθατε!</h1>
+        <p className="text-lg text-slate-400 mt-2">Δείτε μια γρήγορη επισκόπηση του τι συμβαίνει σήμερα.</p>
       </div>
 
+      {/* Quick Actions - most important, right at the top */}
+      <QuickActions />
+
+      {/* Stats Overview */}
       <StatsCards />
-      <ChartsSection />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      {/* Two-column layout for activity and alerts */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         <RecentActivity />
-        <QuickActions />
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TopProperties />
-        <RecentReviews />
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <MaintenanceAlerts />
-        <PaymentStatus />
       </div>
+
+      {/* Payment Status - full width */}
+      <PaymentStatus />
     </div>
   )
 }

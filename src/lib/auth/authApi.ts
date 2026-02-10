@@ -11,7 +11,7 @@ class AuthApi {
     // Convert username to email format for backend compatibility
     // If username doesn't contain @, treat it as username and find by username
     // Otherwise use as email
-    const email = username.includes('@') ? username : `${username}@stefanos.com`
+    const email = username.includes('@') ? username : `${username}@smholdings.gr`
     
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',

@@ -1,42 +1,79 @@
 'use client'
 
 import Link from 'next/link'
-
-import { Plus, Edit, Trash2, Download, Upload, Settings, CreditCard, Star, Wrench, MessageSquare, FileText, BarChart3 } from 'lucide-react'
+import { Calendar, Building2, CreditCard, Wrench, MessageSquare, Settings } from 'lucide-react'
 
 const actions = [
-  { label: 'Προσθήκη Χρήστη', icon: Plus, color: 'bg-blue-500 hover:bg-blue-600', href: '/users' },
-  { label: 'Προσθήκη Ακινήτου', icon: Plus, color: 'bg-purple-500 hover:bg-purple-600', href: '/properties' },
-  { label: 'Νέα Κράτηση', icon: Plus, color: 'bg-orange-500 hover:bg-orange-600', href: '/bookings' },
-  { label: 'Πληρωμή', icon: CreditCard, color: 'bg-emerald-500 hover:bg-emerald-600', href: '/payments' },
-  { label: 'Αξιολόγηση', icon: Star, color: 'bg-yellow-500 hover:bg-yellow-600', href: '/reviews' },
-  { label: 'Συντήρηση', icon: Wrench, color: 'bg-red-500 hover:bg-red-600', href: '/maintenance' },
-  { label: 'Μήνυμα', icon: MessageSquare, color: 'bg-blue-600 hover:bg-blue-700', href: '/messages' },
-  { label: 'Αναφορά', icon: FileText, color: 'bg-cyan-500 hover:bg-cyan-600', href: '/reports' },
-  { label: 'Αναλυτικά', icon: BarChart3, color: 'bg-pink-500 hover:bg-pink-600', href: '/analytics' },
-  { label: 'Εξαγωγή', icon: Download, color: 'bg-green-500 hover:bg-green-600', href: '/settings' },
-  { label: 'Εισαγωγή', icon: Upload, color: 'bg-indigo-500 hover:bg-indigo-600', href: '/settings' },
-  { label: 'Ρυθμίσεις', icon: Settings, color: 'bg-gray-500 hover:bg-gray-600', href: '/settings' },
+  { 
+    label: 'Κρατήσεις', 
+    description: 'Δείτε & διαχειριστείτε κρατήσεις',
+    icon: Calendar, 
+    color: 'bg-orange-500/10 hover:bg-orange-500/20 border-orange-500/20',
+    iconColor: 'text-orange-400',
+    href: '/bookings' 
+  },
+  { 
+    label: 'Ακίνητα', 
+    description: 'Διαχείριση ακινήτων',
+    icon: Building2, 
+    color: 'bg-purple-500/10 hover:bg-purple-500/20 border-purple-500/20',
+    iconColor: 'text-purple-400',
+    href: '/properties' 
+  },
+  { 
+    label: 'Πληρωμές', 
+    description: 'Κατάσταση πληρωμών',
+    icon: CreditCard, 
+    color: 'bg-green-500/10 hover:bg-green-500/20 border-green-500/20',
+    iconColor: 'text-green-400',
+    href: '/payments' 
+  },
+  { 
+    label: 'Συντήρηση', 
+    description: 'Αιτήματα & επισκευές',
+    icon: Wrench, 
+    color: 'bg-red-500/10 hover:bg-red-500/20 border-red-500/20',
+    iconColor: 'text-red-400',
+    href: '/maintenance' 
+  },
+  { 
+    label: 'Μηνύματα', 
+    description: 'Επικοινωνία με πελάτες',
+    icon: MessageSquare, 
+    color: 'bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/20',
+    iconColor: 'text-blue-400',
+    href: '/messages' 
+  },
+  { 
+    label: 'Ρυθμίσεις', 
+    description: 'Ρυθμίσεις συστήματος',
+    icon: Settings, 
+    color: 'bg-slate-500/10 hover:bg-slate-500/20 border-slate-500/20',
+    iconColor: 'text-slate-400',
+    href: '/settings' 
+  },
 ]
 
 export function QuickActions() {
   return (
-    <div className="card">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-gray-900">Γρήγορες Ενέργειες</h2>
-        <Settings className="h-5 w-5 text-gray-400" />
-      </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-        {actions.map((action, index) => {
+    <div>
+      <h2 className="text-xl font-bold text-slate-100 mb-4">Γρήγορες Ενέργειες</h2>
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+        {actions.map((action) => {
           const Icon = action.icon
           return (
             <Link
-              key={index}
+              key={action.label}
               href={action.href}
-              className={`${action.color} text-white p-4 rounded-lg flex flex-col items-center justify-center space-y-2 transition-all duration-200 transform hover:scale-105`}
+              className={`${action.color} border rounded-2xl p-5 flex flex-col items-center justify-center text-center gap-3 transition-all duration-200 hover:shadow-lg hover:shadow-black/20`}
             >
-              <Icon className="h-5 w-5" />
-              <span className="text-sm font-medium text-center">{action.label}</span>
+              <div className="p-3 bg-slate-800 rounded-xl">
+                <Icon className={`h-7 w-7 ${action.iconColor}`} />
+              </div>
+              <div>
+                <span className="text-base font-semibold text-slate-100 block">{action.label}</span>
+                <span className="text-xs text-slate-400 mt-1 block">{action.description}</span>
+              </div>
             </Link>
           )
         })}

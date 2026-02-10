@@ -1,18 +1,15 @@
 'use client'
 
-import { useState } from 'react'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
-
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-20'}`}>
-        <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-        <main className="flex-1 overflow-y-auto p-6">
+    <div className="flex h-screen" style={{ backgroundColor: '#0f172a' }}>
+      <Sidebar />
+      <div className="flex-1 flex flex-col ml-72">
+        <Header />
+        <main className="flex-1 overflow-y-auto p-8">
           {children}
         </main>
       </div>

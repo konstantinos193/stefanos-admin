@@ -16,7 +16,7 @@ export function GeneralSettings() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Email
             </label>
-            <input type="email" className="input" defaultValue="admin@stefanos.com" />
+            <input type="email" className="input" defaultValue="admin@smholdings.gr" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

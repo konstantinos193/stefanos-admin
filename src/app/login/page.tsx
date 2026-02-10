@@ -30,51 +30,51 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)' }}>
       <div className="w-full max-w-md">
-        <div className="card shadow-2xl">
+        <div className="card shadow-2xl" style={{ backgroundColor: '#1e293b', border: '1px solid #334155' }}>
           {/* Logo */}
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
-              <div className="relative h-16 w-16">
+          <div className="text-center mb-10">
+            <div className="flex justify-center mb-5">
+              <div className="relative h-20 w-20">
                 <Image
-                  src="/logo.png"
-                  alt="Stefadash Logo"
-                  width={64}
-                  height={64}
+                  src="/logoetc.png"
+                  alt="SMH holdings logo"
+                  width={80}
+                  height={80}
                   className="h-full w-full object-contain"
                   priority
                   unoptimized
                 />
               </div>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">Stefadash</h1>
-            <p className="text-gray-600 mt-2">Admin Panel Login</p>
+            <h1 className="text-3xl font-bold text-slate-100">SMH Holdings</h1>
+            <p className="text-lg text-slate-400 mt-2">Πίνακας Διαχείρισης</p>
           </div>
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+              <div className="bg-red-500/15 border-2 border-red-500/30 text-red-400 px-5 py-4 rounded-xl text-base font-medium">
                 {error}
               </div>
             )}
 
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-                Username
+              <label htmlFor="username" className="block text-base font-semibold text-slate-300 mb-2">
+                Όνομα Χρήστη
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-gray-400" />
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <User className="h-5 w-5 text-slate-500" />
                 </div>
                 <input
                   id="username"
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="input pl-10"
-                  placeholder="Enter your username"
+                  className="input pl-12 text-lg"
+                  placeholder="Εισάγετε το όνομα χρήστη"
                   required
                   autoFocus
                 />
@@ -82,20 +82,20 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
+              <label htmlFor="password" className="block text-base font-semibold text-slate-300 mb-2">
+                Κωδικός Πρόσβασης
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-slate-500" />
                 </div>
                 <input
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="input pl-10"
-                  placeholder="Enter your password"
+                  className="input pl-12 text-lg"
+                  placeholder="Εισάγετε τον κωδικό σας"
                   required
                 />
               </div>
@@ -104,25 +104,25 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full btn btn-primary flex items-center justify-center space-x-2 h-12 text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full btn btn-primary flex items-center justify-center gap-3 h-14 text-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <>
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  <span>Logging in...</span>
+                  <span>Σύνδεση...</span>
                 </>
               ) : (
                 <>
-                  <LogIn className="h-5 w-5" />
-                  <span>Login</span>
+                  <LogIn className="h-6 w-6" />
+                  <span>Σύνδεση</span>
                 </>
               )}
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-xs text-gray-500">
-              Secure admin access to Stefanos Spyros Real Estate
+          <div className="mt-8 text-center">
+            <p className="text-sm text-slate-500">
+              Ασφαλής πρόσβαση διαχείρισης SMH Holdings
             </p>
           </div>
         </div>

@@ -1,29 +1,40 @@
 'use client'
 
-import { Search, Filter } from 'lucide-react'
+import { Search, Filter, CalendarDays } from 'lucide-react'
 
 export function BookingsFilters() {
   return (
     <div className="card">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 md:space-x-4">
+      <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+        {/* Search */}
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none" />
           <input
             type="text"
-            placeholder="Αναζήτηση κρατήσεων..."
-            className="input pl-10"
+            placeholder="Αναζήτηση με όνομα, email ή ID κράτησης..."
+            className="input pl-12"
           />
         </div>
-        <div className="flex items-center space-x-3">
-          <select className="input">
+
+        {/* Filters row */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <select className="input w-full sm:w-52">
             <option>Όλες οι Καταστάσεις</option>
             <option>Επιβεβαιωμένη</option>
             <option>Σε Αναμονή</option>
             <option>Ακυρωμένη</option>
             <option>Ολοκληρωμένη</option>
           </select>
-          <input type="date" className="input" />
-          <button className="btn btn-secondary flex items-center space-x-2">
+
+          <div className="relative">
+            <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+            <input
+              type="date"
+              className="input w-full sm:w-48 pl-10"
+            />
+          </div>
+
+          <button className="btn btn-primary flex items-center justify-center gap-2 whitespace-nowrap">
             <Filter className="h-4 w-4" />
             <span>Φίλτρο</span>
           </button>

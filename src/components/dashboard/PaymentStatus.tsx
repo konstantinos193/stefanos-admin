@@ -4,9 +4,9 @@ import { CreditCard, CheckCircle, Clock, XCircle, TrendingUp } from 'lucide-reac
 
 export function PaymentStatus() {
   const stats = [
-    { label: 'Ολοκληρωμένες', value: 1245, color: 'text-green-600', bgColor: 'bg-green-50', icon: CheckCircle },
-    { label: 'Εκκρεμείς', value: 23, color: 'text-yellow-600', bgColor: 'bg-yellow-50', icon: Clock },
-    { label: 'Αποτυχημένες', value: 5, color: 'text-red-600', bgColor: 'bg-red-50', icon: XCircle },
+    { label: 'Ολοκληρωμένες', value: 1245, color: 'text-green-400', bgColor: 'bg-green-500/15', icon: CheckCircle },
+    { label: 'Εκκρεμείς', value: 23, color: 'text-yellow-400', bgColor: 'bg-yellow-500/15', icon: Clock },
+    { label: 'Αποτυχημένες', value: 5, color: 'text-red-400', bgColor: 'bg-red-500/15', icon: XCircle },
   ]
 
   const recentPayments = [
@@ -18,49 +18,57 @@ export function PaymentStatus() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'COMPLETED':
-        return <CheckCircle className="h-4 w-4 text-green-500" />
+        return <CheckCircle className="h-4 w-4 text-green-400" />
       case 'PENDING':
-        return <Clock className="h-4 w-4 text-yellow-500" />
+        return <Clock className="h-4 w-4 text-yellow-400" />
       default:
-        return <XCircle className="h-4 w-4 text-red-500" />
+        return <XCircle className="h-4 w-4 text-red-400" />
+    }
+  }
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'COMPLETED': return 'Ολοκληρώθηκε'
+      case 'PENDING': return 'Εκκρεμεί'
+      default: return 'Αποτυχία'
     }
   }
 
   return (
     <div className="card">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-gray-900">Κατάσταση Πληρωμών</h2>
-        <CreditCard className="h-5 w-5 text-blue-500" />
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-bold text-slate-100">Κατάσταση Πληρωμών</h2>
+        <CreditCard className="h-5 w-5 text-blue-400" />
       </div>
-      <div className="grid grid-cols-3 gap-3 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         {stats.map((stat) => {
           const Icon = stat.icon
           return (
-            <div key={stat.label} className={`${stat.bgColor} p-3 rounded-lg`}>
-              <div className="flex items-center space-x-2 mb-1">
-                <Icon className={`h-4 w-4 ${stat.color}`} />
-                <span className="text-xs text-gray-600">{stat.label}</span>
+            <div key={stat.label} className={`${stat.bgColor} p-5 rounded-xl`}>
+              <div className="flex items-center gap-3 mb-2">
+                <Icon className={`h-6 w-6 ${stat.color}`} />
+                <span className="text-base font-medium text-slate-300">{stat.label}</span>
               </div>
-              <p className={`text-lg font-bold ${stat.color}`}>{stat.value}</p>
+              <p className={`text-3xl font-bold ${stat.color}`}>{stat.value.toLocaleString('el-GR')}</p>
             </div>
           )
         })}
       </div>
-      <div className="space-y-3">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-600">Πρόσφατες Πληρωμές</span>
-          <TrendingUp className="h-4 w-4 text-green-500" />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <span className="text-base font-semibold text-slate-300">Πρόσφατες Πληρωμές</span>
+          <TrendingUp className="h-5 w-5 text-green-400" />
         </div>
         {recentPayments.map((payment) => (
-          <div key={payment.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-            <div className="flex items-center space-x-2">
+          <div key={payment.id} className="flex items-center justify-between p-4 bg-slate-800/50 rounded-xl hover:bg-slate-800 transition-colors">
+            <div className="flex items-center gap-3">
               {getStatusIcon(payment.status)}
               <div>
-                <p className="text-sm font-medium text-gray-900">{payment.guest}</p>
-                <p className="text-xs text-gray-500">{payment.date}</p>
+                <p className="text-base font-semibold text-slate-100">{payment.guest}</p>
+                <p className="text-sm text-slate-400">{payment.date} · {getStatusLabel(payment.status)}</p>
               </div>
             </div>
-            <p className="text-sm font-semibold text-gray-900">€{payment.amount}</p>
+            <p className="text-lg font-bold text-slate-100">€{payment.amount}</p>
           </div>
         ))}
       </div>

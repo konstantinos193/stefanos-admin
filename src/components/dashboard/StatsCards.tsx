@@ -183,7 +183,7 @@ export function StatsCards() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="card animate-pulse">
-            <div className="h-20 bg-gray-200 rounded"></div>
+            <div className="h-20 bg-slate-700 rounded"></div>
           </div>
         ))}
       </div>
@@ -191,25 +191,25 @@ export function StatsCards() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
       {stats.map((stat) => {
         const Icon = stat.icon
         const TrendIcon = stat.trend === 'up' ? TrendingUp : TrendingDown
         
         return (
-          <div key={stat.title} className="card hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">{stat.value}</p>
-                <div className={`flex items-center space-x-1 mt-2 ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-                  <TrendIcon className="h-4 w-4" />
-                  <span className="text-sm font-medium">{stat.change}</span>
-                  <span className="text-sm text-gray-500">σε σχέση με τον προηγούμενο μήνα</span>
-                </div>
+          <div key={stat.title} className="card hover:shadow-lg hover:shadow-black/20 transition-shadow">
+            <div className="flex items-start justify-between mb-4">
+              <div className={`${stat.bgColor} p-4 rounded-xl`}>
+                <Icon className={`h-7 w-7 ${stat.color.replace('bg-', 'text-')}`} />
               </div>
-              <div className={`${stat.bgColor} p-3 rounded-lg`}>
-                <Icon className={`h-6 w-6 ${stat.color.replace('bg-', 'text-')}`} />
+            </div>
+            <div>
+              <p className="text-base font-medium text-slate-400">{stat.title}</p>
+              <p className="text-3xl font-bold text-slate-100 mt-1">{stat.value}</p>
+              <div className={`flex items-center gap-1.5 mt-3 ${stat.trend === 'up' ? 'text-green-400' : 'text-red-400'}`}>
+                <TrendIcon className="h-4 w-4" />
+                <span className="text-sm font-semibold">{stat.change}</span>
+                <span className="text-sm text-slate-500">από προηγ. μήνα</span>
               </div>
             </div>
           </div>
