@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react'
 import { Room, RoomType, roomsApi } from '@/lib/api/rooms'
 import { uploadApi } from '@/lib/api/upload'
-import { X, Upload, Trash2, ToggleLeft, ToggleRight } from 'lucide-react'
+import { X, Upload, Trash2, ToggleLeft, ToggleRight, GripVertical, Image as ImageIcon, ZoomIn, Star, ArrowUp, ArrowDown, Plus } from 'lucide-react'
 
 interface RoomEditDialogProps {
   room: Room
@@ -29,28 +29,40 @@ export function RoomEditDialog({ room, isOpen, onClose, onSave }: RoomEditDialog
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState<'general' | 'capacity' | 'images' | 'descriptions'>('general')
+  const [dragOver, setDragOver] = useState(false)
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   if (!isOpen) return null
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const handleImageUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return
 
     setUploading(true)
     try {
-      const response = await uploadApi.uploadRoomImage(file)
-      if (response.success && response.data.url) {
+      const response = await uploadApi.uploadMultipleRoomImages(Array.from(files))
+      if (response.success && response.data.urls.length > 0) {
         setEditedRoom(prev => ({
           ...prev,
-          images: [...(prev.images || []), response.data.url]
+          images: [...(prev.images || []), ...response.data.urls]
         }))
+      } else {
+        throw new Error('No images uploaded successfully')
       }
     } catch (error) {
-      console.error('Error uploading image:', error)
-      alert('Αποτυχία μεταφόρτωσης εικόνας')
+      console.error('Error uploading images:', error)
+      alert('Αποτυχία μεταφόρτωσης εικόνων')
     } finally {
       setUploading(false)
+    }
+  }
+
+  const handleSingleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    await handleImageUpload(e.target.files)
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
     }
   }
 
@@ -59,6 +71,69 @@ export function RoomEditDialog({ room, isOpen, onClose, onSave }: RoomEditDialog
       ...prev,
       images: prev.images?.filter((_, i) => i !== index) || []
     }))
+  }
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault()
+    if (draggedIndex === null || draggedIndex === dropIndex) return
+
+    const images = [...(editedRoom.images || [])]
+    const draggedImage = images[draggedIndex]
+    images.splice(draggedIndex, 1)
+    images.splice(dropIndex, 0, draggedImage)
+
+    setEditedRoom(prev => ({ ...prev, images }))
+    setDraggedIndex(null)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null)
+  }
+
+  const handleFileDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOver(false)
+    await handleImageUpload(e.dataTransfer.files)
+  }
+
+  const handleDragOverArea = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOver(true)
+  }
+
+  const handleDragLeave = () => {
+    setDragOver(false)
+  }
+
+  const setAsPrimary = (index: number) => {
+    const images = [...(editedRoom.images || [])]
+    const [primaryImage] = images.splice(index, 1)
+    images.unshift(primaryImage)
+    setEditedRoom(prev => ({ ...prev, images }))
+  }
+
+  const moveImage = (index: number, direction: 'up' | 'down') => {
+    const images = [...(editedRoom.images || [])]
+    const newIndex = direction === 'up' ? index - 1 : index + 1
+    
+    if (newIndex < 0 || newIndex >= images.length) return
+    
+    [images[index], images[newIndex]] = [images[newIndex], images[index]]
+    setEditedRoom(prev => ({ ...prev, images }))
+  }
+
+  const addMoreImages = () => {
+    fileInputRef.current?.click()
   }
 
   const handleSave = async () => {
@@ -327,60 +402,187 @@ export function RoomEditDialog({ room, isOpen, onClose, onSave }: RoomEditDialog
           {/* Images Tab */}
           {activeTab === 'images' && (
             <>
-              {editedRoom.images && editedRoom.images.length > 0 && (
-                <div className="grid grid-cols-3 gap-4">
+              {/* Quick Actions Bar */}
+              <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-[#334155]">
+                <div className="flex items-center gap-4">
+                  <div className="text-sm">
+                    <span className="text-slate-400">Εικόνες:</span>
+                    <span className="ml-2 font-medium text-slate-200">
+                      {editedRoom.images?.length || 0}
+                    </span>
+                  </div>
+                  {editedRoom.images && editedRoom.images.length > 0 && (
+                    <div className="text-xs text-slate-500">
+                      Η πρώτη εικόνα είναι η κύρια
+                    </div>
+                  )}
+                </div>
+                
+                <button
+                  onClick={addMoreImages}
+                  disabled={uploading}
+                  className="flex items-center gap-2 px-4 py-2 bg-accent-blue hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50 text-sm"
+                >
+                  <Plus className="w-4 h-4" />
+                  {uploading ? 'Μεταφόρτωση...' : 'Προσθήκη Εικόνων'}
+                </button>
+              </div>
+
+              {/* Images List - Much easier to manage */}
+              {editedRoom.images && editedRoom.images.length > 0 ? (
+                <div className="space-y-3">
                   {editedRoom.images.map((image, index) => (
-                    <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-slate-800">
-                      <img
-                        src={image}
-                        alt={`Room image ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                      <button
-                        onClick={() => handleRemoveImage(index)}
-                        className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                      {index === 0 && (
-                        <span className="absolute bottom-2 left-2 px-2 py-0.5 text-[10px] font-semibold bg-amber-500 text-white rounded">
-                          Κύρια
-                        </span>
-                      )}
+                    <div
+                      key={index}
+                      className="flex items-center gap-4 p-4 bg-slate-800/30 rounded-lg border border-[#334155] hover:border-[#475569] transition-all group"
+                    >
+                      {/* Thumbnail */}
+                      <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-slate-700 flex-shrink-0">
+                        <img
+                          src={image}
+                          alt={`Room image ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        
+                        {/* Primary Badge */}
+                        {index === 0 && (
+                          <div className="absolute top-1 left-1 px-2 py-0.5 text-[10px] font-semibold bg-amber-500 text-white rounded flex items-center gap-1">
+                            <Star className="w-3 h-3" />
+                            Κύρια
+                          </div>
+                        )}
+                        
+                        {/* Index Badge */}
+                        <div className="absolute bottom-1 right-1 px-1.5 py-0.5 text-[10px] font-semibold bg-black/50 text-white rounded">
+                          #{index + 1}
+                        </div>
+                      </div>
+
+                      {/* Image Info & Actions */}
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-slate-200">
+                              {index === 0 ? 'Κύρια Εικόνα' : `Εικόνα ${index + 1}`}
+                            </p>
+                            <p className="text-xs text-slate-500 mt-1">
+                              Κάντε κλικ για προεπισκόπηση
+                            </p>
+                          </div>
+                          
+                          {/* Action Buttons */}
+                          <div className="flex items-center gap-2">
+                            {/* Reordering */}
+                            <div className="flex flex-col gap-1">
+                              <button
+                                onClick={() => moveImage(index, 'up')}
+                                disabled={index === 0}
+                                className="p-1.5 bg-slate-700 hover:bg-slate-600 disabled:opacity-30 disabled:cursor-not-allowed rounded transition-colors"
+                                title="Μετακίνηση πάνω"
+                              >
+                                <ArrowUp className="w-3 h-3 text-slate-300" />
+                              </button>
+                              <button
+                                onClick={() => moveImage(index, 'down')}
+                                disabled={index === editedRoom.images.length - 1}
+                                className="p-1.5 bg-slate-700 hover:bg-slate-600 disabled:opacity-30 disabled:cursor-not-allowed rounded transition-colors"
+                                title="Μετακίνηση κάτω"
+                              >
+                                <ArrowDown className="w-3 h-3 text-slate-300" />
+                              </button>
+                            </div>
+
+                            {/* Set Primary */}
+                            {index !== 0 && (
+                              <button
+                                onClick={() => setAsPrimary(index)}
+                                className="p-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-lg transition-colors"
+                                title="Ορισμός ως κύρια"
+                              >
+                                <Star className="w-4 h-4" />
+                              </button>
+                            )}
+
+                            {/* Preview */}
+                            <button
+                              onClick={() => setSelectedImage(image)}
+                              className="p-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg transition-colors"
+                              title="Προεπισκόπηση"
+                            >
+                              <ZoomIn className="w-4 h-4" />
+                            </button>
+
+                            {/* Delete */}
+                            <button
+                              onClick={() => handleRemoveImage(index)}
+                              className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors"
+                              title="Διαγραφή"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
+              ) : (
+                /* Empty State */
+                <div
+                  className={`flex flex-col items-center justify-center py-12 px-4 border-2 border-dashed rounded-lg transition-colors cursor-pointer ${
+                    dragOver 
+                      ? 'border-accent-blue bg-blue-500/10' 
+                      : 'border-[#475569] hover:border-accent-blue hover:bg-slate-800'
+                  }`}
+                  onClick={addMoreImages}
+                  onDrop={handleFileDrop}
+                  onDragOver={handleDragOverArea}
+                  onDragLeave={handleDragLeave}
+                >
+                  <ImageIcon className="w-12 h-12 text-slate-600 mb-4" />
+                  <h3 className="text-lg font-medium text-slate-300 mb-2">
+                    Δεν υπάρχουν εικόνες
+                  </h3>
+                  <p className="text-sm text-slate-500 text-center mb-4">
+                    Προσθέστε εικόνες για το δωμάτιο για να εμφανίζονται στην κράτηση
+                  </p>
+                  <button className="flex items-center gap-2 px-4 py-2 bg-accent-blue hover:bg-blue-600 text-white rounded-lg transition-colors">
+                    <Plus className="w-4 h-4" />
+                    Πρώτη Εικόνα
+                  </button>
+                </div>
               )}
 
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="flex items-center gap-2 px-4 py-3 w-full border-2 border-dashed border-[#475569] rounded-lg hover:border-accent-blue hover:bg-slate-800 transition-colors disabled:opacity-50 justify-center"
-              >
-                {uploading ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-                    <span className="text-slate-400">Μεταφόρτωση...</span>
-                  </>
-                ) : (
-                  <>
-                    <Upload className="w-5 h-5 text-slate-400" />
-                    <span className="text-slate-400">Προσθήκη Εικόνας</span>
-                  </>
-                )}
-              </button>
+              {/* Hidden File Input */}
               <input
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
-                onChange={handleImageUpload}
+                multiple
+                onChange={handleSingleImageUpload}
                 className="hidden"
               />
 
-              {(!editedRoom.images || editedRoom.images.length === 0) && (
-                <p className="text-sm text-slate-500 text-center py-4">
-                  Δεν υπάρχουν εικόνες. Προσθέστε εικόνες για το δωμάτιο.
-                </p>
+              {/* Image Preview Modal */}
+              {selectedImage && (
+                <div 
+                  className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+                  onClick={() => setSelectedImage(null)}
+                >
+                  <div className="relative max-w-4xl max-h-full">
+                    <img
+                      src={selectedImage}
+                      alt="Preview"
+                      className="max-w-full max-h-full object-contain rounded-lg"
+                    />
+                    <button
+                      onClick={() => setSelectedImage(null)}
+                      className="absolute top-4 right-4 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
               )}
             </>
           )}
