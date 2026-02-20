@@ -100,6 +100,9 @@ export interface Booking {
   currency: string;
   ownerRevenue: number | null; // Revenue after platform fees
   platformFee: number | null; // Platform fee amount
+  source?: string;
+  roomId: string | null;
+  roomName: string | null;
   guestName: string;
   guestEmail: string;
   guestPhone: string | null;
@@ -152,5 +155,47 @@ export interface DashboardStats {
   propertiesChange: number;
   bookingsChange: number;
   revenueChange: number;
+}
+
+// Admin Dashboard Stats (from GET /admin/dashboard)
+export interface AdminDashboardOverview {
+  totalUsers: number;
+  totalProperties: number;
+  totalBookings: number;
+  totalRevenue: number;
+  activeBookings: number;
+  pendingBookings: number;
+}
+
+export interface AdminRecentBooking {
+  id: string;
+  status: string;
+  checkIn: string;
+  checkOut: string;
+  totalPrice: number;
+  guestName: string;
+  createdAt: string;
+  property?: {
+    titleEn: string;
+    titleGr: string;
+  };
+  guest?: {
+    name: string;
+    email: string;
+  };
+}
+
+export interface AdminRecentUser {
+  id: string;
+  name: string | null;
+  email: string;
+  role: string;
+  createdAt: string;
+}
+
+export interface AdminDashboardResponse {
+  overview: AdminDashboardOverview;
+  recentBookings: AdminRecentBooking[];
+  recentUsers: AdminRecentUser[];
 }
 

@@ -218,6 +218,11 @@
     color: #64748b;
   }
   
+  select.input option {
+    background-color: #1e293b;
+    color: #f1f5f9;
+  }
+  
   .sidebar {
     background-color: #0f172a;
     border-right: 1px solid #1e293b;

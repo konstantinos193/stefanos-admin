@@ -16,10 +16,24 @@ export async function apiRequest<T>(
     ? localStorage.getItem('admin_token') || localStorage.getItem('token')
     : null;
   
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     ...apiConfig.headers,
-    ...options.headers,
   };
+
+  // Add options.headers if they exist
+  if (options.headers) {
+    if (options.headers instanceof Headers) {
+      options.headers.forEach((value, key) => {
+        headers[key] = value;
+      });
+    } else if (Array.isArray(options.headers)) {
+      options.headers.forEach(([key, value]) => {
+        headers[key] = value;
+      });
+    } else {
+      Object.assign(headers, options.headers);
+    }
+  }
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;

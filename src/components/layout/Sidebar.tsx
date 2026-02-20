@@ -14,22 +14,16 @@ export function Sidebar() {
       <div className="flex flex-col h-full">
         {/* Logo Section */}
         <div className="p-5 border-b border-slate-800">
-          <Link href="/dashboard" className="flex items-center space-x-3">
-            <div className="relative h-11 w-11 flex-shrink-0">
-              <Image
-                src="/logoetc.png"
-                alt="SMH holdings logo"
-                width={44}
-                height={44}
-                className="h-full w-full object-contain"
-                priority
-                unoptimized
-              />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-base font-bold text-slate-100">SMH Holdings</span>
-              <span className="text-sm text-slate-400">Πίνακας Διαχείρισης</span>
-            </div>
+          <Link href="/dashboard" className="flex items-center justify-center">
+            <Image
+              src="/logoetc.png"
+              alt="SMH Holdings"
+              width={160}
+              height={44}
+              className="h-11 w-auto object-contain"
+              priority
+              unoptimized
+            />
           </Link>
         </div>
 

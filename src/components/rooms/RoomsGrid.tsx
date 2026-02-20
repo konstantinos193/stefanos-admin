@@ -8,19 +8,13 @@ import { RoomEditDialog } from './RoomEditDialog'
 export function RoomsGrid() {
   const [rooms, setRooms] = useState<Room[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedProperty, setSelectedProperty] = useState<string>('')
   const [editingRoom, setEditingRoom] = useState<Room | null>(null)
 
   useEffect(() => {
     async function fetchRooms() {
-      if (!selectedProperty) {
-        setRooms([])
-        setLoading(false)
-        return
-      }
       try {
         setLoading(true)
-        const response = await roomsApi.getByProperty(selectedProperty)
+        const response = await roomsApi.getBookable()
         setRooms(response.data?.rooms || [])
       } catch (error) {
         console.error('Error fetching rooms:', error)
@@ -29,12 +23,13 @@ export function RoomsGrid() {
         setLoading(false)
       }
     }
-
     fetchRooms()
-  }, [selectedProperty])
+  }, [])
 
-  const handleSaveRoom = (updatedRoom: Room) => {
-    setRooms(prev => prev.map(r => r.id === updatedRoom.id ? updatedRoom : r))
+  const handleSaveRoom = (updatedRoom?: Room) => {
+    if (updatedRoom) {
+      setRooms(prev => prev.map(r => r.id === updatedRoom.id ? updatedRoom : r))
+    }
   }
 
   if (loading) {
@@ -42,16 +37,6 @@ export function RoomsGrid() {
       <div className="card">
         <div className="p-6 text-center">
           <p className="text-gray-600">Φόρτωση δωματίων...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!selectedProperty) {
-    return (
-      <div className="card">
-        <div className="p-6 text-center">
-          <p className="text-gray-600">Επιλέξτε ένα ακίνητο για να δείτε τα δωμάτια</p>
         </div>
       </div>
     )
@@ -111,6 +96,25 @@ export function RoomsGrid() {
                   <Users className="h-4 w-4" />
                   <span>Χωρητικότητα: {room.capacity}</span>
                 </div>
+                {(room.maxAdults != null || room.maxChildren != null || room.maxInfants != null) && (
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    {room.maxAdults != null && (
+                      <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full">
+                        Ενήλικες: {room.maxAdults}
+                      </span>
+                    )}
+                    {room.maxChildren != null && (
+                      <span className="px-2 py-0.5 bg-green-50 text-green-700 rounded-full">
+                        Παιδιά: {room.maxChildren}
+                      </span>
+                    )}
+                    {room.maxInfants != null && (
+                      <span className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded-full">
+                        Βρέφη: {room.maxInfants}
+                      </span>
+                    )}
+                  </div>
+                )}
                 <div className="flex items-center space-x-2 text-sm text-gray-600">
                   <Euro className="h-4 w-4" />
                   <span>Τιμή: €{room.basePrice.toFixed(2)}</span>

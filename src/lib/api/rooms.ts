@@ -1,13 +1,18 @@
 import { apiRequest } from './config';
 
+export type RoomType = 'BEDROOM' | 'LIVING_ROOM' | 'STUDIO' | 'KITCHEN' | 'BATHROOM' | 'BALCONY' | 'TERRACE' | 'GARDEN' | 'OTHER';
+
 export interface Room {
   id: string;
   propertyId: string;
   name: string;
   nameGr: string | null;
   nameEn: string | null;
-  type: 'BEDROOM' | 'LIVING_ROOM' | 'STUDIO' | 'KITCHEN' | 'BATHROOM' | 'BALCONY' | 'TERRACE' | 'GARDEN' | 'OTHER';
+  type: RoomType;
   capacity: number;
+  maxAdults: number | null;
+  maxChildren: number | null;
+  maxInfants: number | null;
   basePrice: number;
   isBookable: boolean;
   amenities: string[];
@@ -20,6 +25,40 @@ export interface Room {
     id: string;
     titleGr: string;
     titleEn: string;
+  };
+}
+
+export interface DashboardRoom extends Room {
+  upcomingBookingsCount: number;
+  nextBooking: {
+    id: string;
+    checkIn: string;
+    checkOut: string;
+    guestName: string;
+    guests: number;
+  } | null;
+  isOccupied: boolean;
+  lastCleaned: string | null;
+  nextCleaning: string | null;
+  cleaningFrequency: string | null;
+  totalRevenue: number;
+}
+
+export interface RoomDashboardStats {
+  totalRooms: number;
+  bookableRooms: number;
+  unavailableRooms: number;
+  averagePrice: number;
+  totalUpcomingBookings: number;
+  occupancyRate: number;
+  totalRevenue: number;
+}
+
+export interface RoomDashboardResponse {
+  success: boolean;
+  data: {
+    stats: RoomDashboardStats;
+    rooms: DashboardRoom[];
   };
 }
 
@@ -43,6 +82,14 @@ export interface RoomQueryParams {
 }
 
 export const roomsApi = {
+  async getDashboardStats(): Promise<RoomDashboardResponse> {
+    return apiRequest<RoomDashboardResponse>('/rooms/dashboard-stats');
+  },
+
+  async getBookable(): Promise<RoomsResponse> {
+    return apiRequest<RoomsResponse>('/rooms/bookable');
+  },
+
   async getByProperty(propertyId: string): Promise<RoomsResponse> {
     return apiRequest<RoomsResponse>(`/rooms/property/${propertyId}`);
   },

@@ -5,6 +5,11 @@ export interface BookingQueryParams {
   page?: number;
   limit?: number;
   status?: string;
+  search?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export const bookingsApi = {
@@ -14,6 +19,11 @@ export const bookingsApi = {
     if (params.page) queryParams.append('page', params.page.toString());
     if (params.limit) queryParams.append('limit', params.limit.toString());
     if (params.status) queryParams.append('status', params.status);
+    if (params.search) queryParams.append('search', params.search);
+    if (params.dateFrom) queryParams.append('dateFrom', params.dateFrom);
+    if (params.dateTo) queryParams.append('dateTo', params.dateTo);
+    if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
     const queryString = queryParams.toString();
     return apiRequest<BookingsResponse>(`/bookings${queryString ? `?${queryString}` : ''}`);
@@ -35,6 +45,10 @@ export const bookingsApi = {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
+  },
+
+  async exportAll(): Promise<{ success: boolean; data: { bookings: Booking[]; total: number } }> {
+    return apiRequest<{ success: boolean; data: { bookings: Booking[]; total: number } }>('/bookings/export');
   },
 
   async cancel(id: string, reason?: string): Promise<{ success: boolean; data: Booking }> {
