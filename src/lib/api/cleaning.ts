@@ -1,23 +1,5 @@
 import { apiRequest } from './config';
-
-export interface CleaningSchedule {
-  id: string;
-  propertyId: string;
-  frequency: 'AFTER_EACH_BOOKING' | 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | 'CUSTOM';
-  lastCleaned: string | null;
-  nextCleaning: string | null;
-  assignedCleaner: string | null;
-  ownerId: string;
-  notes: string | null;
-  createdAt: string;
-  updatedAt: string;
-  property?: {
-    id: string;
-    titleGr: string;
-    titleEn: string;
-    address: string;
-  };
-}
+import { CleaningSchedule, CleaningStats, PropertyCleanliness } from './types';
 
 export interface CleaningSchedulesResponse {
   success: boolean;
@@ -32,11 +14,23 @@ export interface CleaningSchedulesResponse {
   };
 }
 
+export interface CleaningStatsResponse {
+  success: boolean;
+  data: CleaningStats;
+}
+
+export interface PropertyCleanlinessResponse {
+  success: boolean;
+  data: PropertyCleanliness;
+}
+
 export interface CleaningQueryParams {
   page?: number;
   limit?: number;
   propertyId?: string;
   frequency?: string;
+  status?: string;
+  search?: string;
 }
 
 export const cleaningApi = {
@@ -46,6 +40,8 @@ export const cleaningApi = {
     if (params.limit) queryParams.append('limit', params.limit.toString());
     if (params.propertyId) queryParams.append('propertyId', params.propertyId);
     if (params.frequency) queryParams.append('frequency', params.frequency);
+    if (params.status) queryParams.append('status', params.status);
+    if (params.search) queryParams.append('search', params.search);
 
     const queryString = queryParams.toString();
     return apiRequest<CleaningSchedulesResponse>(`/cleaning${queryString ? `?${queryString}` : ''}`);
@@ -56,29 +52,42 @@ export const cleaningApi = {
   },
 
   async create(data: Partial<CleaningSchedule>): Promise<{ success: boolean; data: CleaningSchedule }> {
-    return apiRequest<{ success: boolean; data: CleaningSchedule }>('/cleaning', {
+    return apiRequest<{ success: boolean; data: CleaningSchedule }>('/cleaning/schedule', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   },
 
   async update(id: string, data: Partial<CleaningSchedule>): Promise<{ success: boolean; data: CleaningSchedule }> {
-    return apiRequest<{ success: boolean; data: CleaningSchedule }>(`/cleaning/${id}`, {
+    return apiRequest<{ success: boolean; data: CleaningSchedule }>(`/cleaning/schedule/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
   },
 
-  async markCleaned(id: string): Promise<{ success: boolean; data: CleaningSchedule }> {
-    return apiRequest<{ success: boolean; data: CleaningSchedule }>(`/cleaning/${id}/mark-cleaned`, {
-      method: 'POST',
+  async markCleaned(id: string, date?: string): Promise<{ success: boolean; data: CleaningSchedule }> {
+    const queryParams = date ? `?date=${encodeURIComponent(date)}` : '';
+    return apiRequest<{ success: boolean; data: CleaningSchedule }>(`/cleaning/schedule/${id}/cleaned${queryParams}`, {
+      method: 'PATCH',
     });
   },
 
   async delete(id: string): Promise<{ success: boolean }> {
-    return apiRequest<{ success: boolean }>(`/cleaning/${id}`, {
+    return apiRequest<{ success: boolean }>(`/cleaning/schedule/${id}`, {
       method: 'DELETE',
     });
   },
+
+  async getStats(): Promise<CleaningStatsResponse> {
+    return apiRequest<CleaningStatsResponse>('/cleaning/stats');
+  },
+
+  async getPropertyCleanliness(propertyId: string): Promise<PropertyCleanlinessResponse> {
+    return apiRequest<PropertyCleanlinessResponse>(`/cleaning/property/${propertyId}`);
+  },
+
+  async getPropertySchedules(propertyId: string, userId: string): Promise<CleaningSchedulesResponse> {
+    return apiRequest<CleaningSchedulesResponse>(`/cleaning/property/${propertyId}/schedules?userId=${userId}`);
+  }
 };
 

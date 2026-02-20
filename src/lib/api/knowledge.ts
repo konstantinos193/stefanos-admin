@@ -34,6 +34,9 @@ export interface KnowledgeQueryParams {
   category?: string;
   tags?: string;
   search?: string;
+  published?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export const knowledgeApi = {
@@ -44,6 +47,9 @@ export const knowledgeApi = {
     if (params.category) queryParams.append('category', params.category);
     if (params.tags) queryParams.append('tags', params.tags);
     if (params.search) queryParams.append('search', params.search);
+    if (params.published) queryParams.append('published', params.published);
+    if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
     const queryString = queryParams.toString();
     return apiRequest<KnowledgeResponse>(`/knowledge${queryString ? `?${queryString}` : ''}`);

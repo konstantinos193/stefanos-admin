@@ -1,43 +1,61 @@
 'use client'
 
-import { Download, Eye, Calendar, FileText } from 'lucide-react'
-
-const mockReports = [
-  {
-    id: 1,
-    name: 'Μηνιαία Αναφορά Εσόδων',
-    type: 'Revenue',
-    generatedDate: '2024-11-01',
-    size: '2.4 MB',
-    status: 'Ready',
-  },
-  {
-    id: 2,
-    name: 'Αναφορά Δραστηριότητας Χρηστών',
-    type: 'Users',
-    generatedDate: '2024-11-05',
-    size: '1.8 MB',
-    status: 'Ready',
-  },
-  {
-    id: 3,
-    name: 'Αναφορά Απόδοσης Ακινήτων',
-    type: 'Properties',
-    generatedDate: '2024-11-10',
-    size: '3.2 MB',
-    status: 'Ready',
-  },
-  {
-    id: 4,
-    name: 'Αναφορά Ανάλυσης Κρατήσεων',
-    type: 'Bookings',
-    generatedDate: '2024-11-12',
-    size: '2.1 MB',
-    status: 'Generating',
-  },
-]
+import { useState, useEffect } from 'react'
+import { Download, Eye, Calendar, FileText, RefreshCw } from 'lucide-react'
+import { reportsApi, Report } from '@/lib/api/reports'
 
 export function ReportsList() {
+  const [reports, setReports] = useState<Report[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetchReports()
+  }, [])
+
+  const fetchReports = async () => {
+    try {
+      setLoading(true)
+      const response = await reportsApi.getReports()
+      if (response.success) {
+        setReports(response.data)
+      } else {
+        setError('Failed to load reports')
+      }
+    } catch (err) {
+      setError('Error loading reports')
+      console.error('Error fetching reports:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDownload = async (reportId: string, reportName: string) => {
+    try {
+      const blob = await reportsApi.downloadReport(reportId)
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${reportName}.csv`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (err) {
+      console.error('Error downloading report:', err)
+      setError('Failed to download report')
+    }
+  }
+
+  const handleView = (reportId: string) => {
+    // For now, just download the report
+    // In a real implementation, this could open a preview modal
+    handleDownload(reportId, `report_${reportId}`)
+  }
+
+  const refreshReports = () => {
+    fetchReports()
+  }
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'Revenue':
@@ -68,9 +86,42 @@ export function ReportsList() {
     }
   }
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
+        <span className="ml-2 text-gray-600">Loading reports...</span>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <div className="text-red-600 mb-4">{error}</div>
+        <button 
+          onClick={fetchReports}
+          className="btn btn-primary"
+        >
+          Try Again
+        </button>
+      </div>
+    )
+  }
+
+  if (reports.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 mb-2">No reports available</h3>
+        <p className="text-gray-600">Generate your first report to get started.</p>
+      </div>
+    )
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {mockReports.map((report) => (
+      {reports.map((report) => (
         <div key={report.id} className="card hover:shadow-lg transition-shadow">
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
@@ -98,11 +149,19 @@ export function ReportsList() {
             </div>
           </div>
           <div className="flex items-center space-x-2 pt-4 border-t border-gray-200">
-            <button className="flex-1 btn btn-secondary flex items-center justify-center space-x-2">
+            <button 
+              className="flex-1 btn btn-secondary flex items-center justify-center space-x-2"
+              onClick={() => handleView(report.id)}
+              disabled={report.status !== 'Ready'}
+            >
               <Eye className="h-4 w-4" />
               <span>Προβολή</span>
             </button>
-            <button className="flex-1 btn btn-primary flex items-center justify-center space-x-2">
+            <button 
+              className="flex-1 btn btn-primary flex items-center justify-center space-x-2"
+              onClick={() => handleDownload(report.id, report.name)}
+              disabled={report.status !== 'Ready'}
+            >
               <Download className="h-4 w-4" />
               <span>Λήψη</span>
             </button>

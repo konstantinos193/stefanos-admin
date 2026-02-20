@@ -1,30 +1,7 @@
 import { apiRequest } from './config';
+import { MaintenanceRequest } from './types';
 
-export interface MaintenanceRequest {
-  id: string;
-  propertyId: string;
-  bookingId: string | null;
-  title: string;
-  description: string;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
-  status: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
-  assignedTo: string | null;
-  completedAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-  property?: {
-    id: string;
-    titleGr: string;
-    titleEn: string;
-    address: string;
-  };
-  booking?: {
-    id: string;
-    guestName: string;
-    checkIn: string;
-    checkOut: string;
-  };
-}
+export type { MaintenanceRequest };
 
 export interface MaintenanceResponse {
   success: boolean;

@@ -1,24 +1,50 @@
-import { BookOpen, Plus } from 'lucide-react'
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { KnowledgeHeader } from '@/components/knowledge/KnowledgeHeader'
+import { KnowledgeTable } from '@/components/knowledge/KnowledgeTable'
+import { KnowledgeFilters } from '@/components/knowledge/KnowledgeFilters'
+import { KnowledgeQueryParams } from '@/lib/api/knowledge'
 
 export default function KnowledgePage() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const urlSearch = searchParams.get('search') || ''
+
+  const [filters, setFilters] = useState<KnowledgeQueryParams>({
+    limit: 50,
+    search: urlSearch || undefined,
+  })
+
+  // Sync URL search param → filters (when navigating from header search)
+  useEffect(() => {
+    const newSearch = searchParams.get('search') || ''
+    setFilters((prev) => {
+      if ((prev.search || '') !== newSearch) {
+        return { ...prev, search: newSearch || undefined, page: 1 }
+      }
+      return prev
+    })
+  }, [searchParams])
+
+  // Sync filters → URL (keep URL in sync when using inline filters)
+  const handleFiltersChange = useCallback((newFilters: KnowledgeQueryParams) => {
+    setFilters(newFilters)
+    const params = new URLSearchParams()
+    if (newFilters.search) params.set('search', newFilters.search)
+    if (newFilters.category) params.set('category', newFilters.category)
+    if (newFilters.published) params.set('published', newFilters.published)
+    if (newFilters.tags) params.set('tags', newFilters.tags)
+    const qs = params.toString()
+    router.replace(`/knowledge${qs ? `?${qs}` : ''}`, { scroll: false })
+  }, [router])
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Βάση Γνώσης</h1>
-          <p className="text-gray-600 mt-1">Διαχείριση άρθρων βάσης γνώσης</p>
-        </div>
-        <button className="btn btn-primary flex items-center space-x-2">
-          <Plus className="h-4 w-4" />
-          <span>Νέο Άρθρο</span>
-        </button>
-      </div>
-      <div className="card">
-        <div className="p-6 text-center text-gray-500">
-          <BookOpen className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-          <p>Διαθέσιμο σύντομα</p>
-        </div>
-      </div>
+      <KnowledgeHeader />
+      <KnowledgeFilters filters={filters} onFiltersChange={handleFiltersChange} />
+      <KnowledgeTable filters={filters} />
     </div>
   )
 }

@@ -29,32 +29,32 @@ export function PaymentsTable() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'COMPLETED':
-        return <CheckCircle className="h-4 w-4 text-green-500" />
+        return <CheckCircle className="h-4 w-4 text-green-400" />
       case 'FAILED':
-        return <XCircle className="h-4 w-4 text-red-500" />
+        return <XCircle className="h-4 w-4 text-red-400" />
       case 'PENDING':
-        return <Clock className="h-4 w-4 text-yellow-500" />
+        return <Clock className="h-4 w-4 text-yellow-400" />
       case 'REFUNDED':
       case 'PARTIALLY_REFUNDED':
-        return <RefreshCw className="h-4 w-4 text-blue-500" />
+        return <RefreshCw className="h-4 w-4 text-blue-400" />
       default:
-        return <Clock className="h-4 w-4 text-gray-500" />
+        return <Clock className="h-4 w-4 text-gray-400" />
     }
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'COMPLETED':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-900/30 text-green-400 border border-green-800/50'
       case 'FAILED':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-900/30 text-red-400 border border-red-800/50'
       case 'PENDING':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-900/30 text-yellow-400 border border-yellow-800/50'
       case 'REFUNDED':
       case 'PARTIALLY_REFUNDED':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-900/30 text-blue-400 border border-blue-800/50'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-800/50 text-gray-400 border border-gray-700/50'
     }
   }
 
@@ -90,7 +90,7 @@ export function PaymentsTable() {
     return (
       <div className="card overflow-hidden">
         <div className="p-6 text-center">
-          <p className="text-gray-600">Φόρτωση πληρωμών...</p>
+          <p className="text-gray-400">Φόρτωση πληρωμών...</p>
         </div>
       </div>
     )
@@ -100,68 +100,68 @@ export function PaymentsTable() {
     <div className="card overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-gray-800/50 border-b border-gray-700">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Κράτηση</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ποσό</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Μέθοδος</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Κατάσταση</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ημερομηνία</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Ενέργειες</th>
+              <th className="table-header-cell">ID</th>
+              <th className="table-header-cell">Κράτηση</th>
+              <th className="table-header-cell">Ποσό</th>
+              <th className="table-header-cell">Μέθοδος</th>
+              <th className="table-header-cell">Κατάσταση</th>
+              <th className="table-header-cell">Ημερομηνία</th>
+              <th className="table-header-cell text-right">Ενέργειες</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-gray-900/30 divide-y divide-gray-700">
             {payments.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={7} className="table-body-cell text-center text-gray-400">
                   Δεν βρέθηκαν πληρωμές
                 </td>
               </tr>
             ) : (
               payments.map((payment) => (
-                <tr key={payment.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-600">
+                <tr key={payment.id} className="hover:bg-gray-800/50 transition-colors">
+                  <td className="table-body-cell font-mono text-gray-400">
                     {payment.id.slice(-8)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
+                  <td className="table-body-cell">
+                    <div className="text-sm text-gray-100">
                       {payment.booking?.guestName || 'N/A'}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-gray-400">
                       {payment.property?.titleGr || payment.property?.titleEn || 'N/A'}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-semibold text-gray-900">
+                  <td className="table-body-cell">
+                    <div className="text-sm font-semibold text-gray-100">
                       {formatCurrency(payment.amount, payment.currency)}
                     </div>
                     {payment.refundAmount && (
-                      <div className="text-xs text-red-600">
+                      <div className="text-xs text-red-400">
                         Επιστροφή: {formatCurrency(payment.refundAmount, payment.currency)}
                       </div>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="table-body-cell">
                     <div className="flex items-center space-x-2">
                       <CreditCard className="h-4 w-4 text-gray-400" />
-                      <span className="text-sm text-gray-900">{payment.method}</span>
+                      <span className="text-sm text-gray-100">{payment.method}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="table-body-cell">
                     <div className="flex items-center space-x-2">
                       {getStatusIcon(payment.status)}
-                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(payment.status)}`}>
+                      <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(payment.status)}`}>
                         {getStatusLabel(payment.status)}
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="table-body-cell text-gray-400">
                     {formatDate(payment.createdAt)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                  <td className="table-body-cell text-right">
                     {payment.status === 'COMPLETED' && (
-                      <button className="text-blue-600 hover:text-blue-900 text-sm font-medium">
+                      <button className="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors">
                         Επιστροφή
                       </button>
                     )}

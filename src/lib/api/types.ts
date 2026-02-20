@@ -199,3 +199,85 @@ export interface AdminDashboardResponse {
   recentUsers: AdminRecentUser[];
 }
 
+// Cleaning Types
+export interface CleaningSchedule {
+  id: string;
+  propertyId: string;
+  frequency: 'AFTER_EACH_BOOKING' | 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | 'CUSTOM';
+  lastCleaned: string | null;
+  nextCleaning: string | null;
+  assignedCleaner: string | null;
+  ownerId: string;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+  property?: {
+    id: string;
+    titleGr: string;
+    titleEn: string;
+    address: string;
+    city: string;
+    status: string;
+  };
+  owner?: {
+    id: string;
+    name: string | null;
+    email: string;
+  };
+}
+
+export interface CleaningStats {
+  totalSchedules: number;
+  pendingToday: number;
+  completedThisWeek: number;
+  overdue: number;
+  averageCleanlinessRating: number | null;
+  propertiesWithCleaning: number;
+}
+
+export interface PropertyCleanliness {
+  propertyId: string;
+  averageCleanlinessRating: number | null;
+  totalRatings: number;
+  lastCleaningDate: string | null;
+  nextCleaningDate: string | null;
+  schedule: CleaningSchedule | null;
+}
+
+// Maintenance Types
+export interface MaintenanceRequest {
+  id: string;
+  propertyId: string;
+  bookingId: string | null;
+  title: string;
+  description: string;
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  status: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  assignedTo: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  property?: {
+    id: string;
+    titleGr: string;
+    titleEn: string;
+    address: string;
+    city: string;
+  };
+  booking?: {
+    id: string;
+    guestName: string;
+    checkIn: string;
+    checkOut: string;
+  };
+}
+
+export interface MaintenanceStats {
+  totalRequests: number;
+  openRequests: number;
+  inProgressRequests: number;
+  completedRequests: number;
+  urgentRequests: number;
+  averageResolutionTime: number | null;
+}
+

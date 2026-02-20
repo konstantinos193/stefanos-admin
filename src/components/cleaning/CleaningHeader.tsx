@@ -1,26 +1,24 @@
 'use client'
 
-import { Plus, Download, Filter, Search, CreditCard } from 'lucide-react'
+import { Plus, Filter, Search, Calendar } from 'lucide-react'
 
-interface PaymentsHeaderProps {
+interface CleaningHeaderProps {
   onSearch?: (query: string) => void
   onFilter?: () => void
-  onExport?: () => void
   onCreate?: () => void
   searchValue?: string
   title?: string
   subtitle?: string
 }
 
-export function PaymentsHeader({ 
+export function CleaningHeader({ 
   onSearch, 
   onFilter, 
-  onExport,
   onCreate, 
   searchValue = '',
-  title = 'Πληρωμές',
-  subtitle = 'Διαχείριση όλων των πληρωμών και συναλλαγών'
-}: PaymentsHeaderProps) {
+  title = 'Καθαρισμός',
+  subtitle = 'Διαχείριση προγραμμάτων καθαρισμού'
+}: CleaningHeaderProps) {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -34,21 +32,14 @@ export function PaymentsHeader({
             className="btn btn-secondary flex items-center space-x-2"
           >
             <Filter className="h-4 w-4" />
-            <span>Φίλτρο</span>
-          </button>
-          <button
-            onClick={onExport}
-            className="btn btn-secondary flex items-center space-x-2"
-          >
-            <Download className="h-4 w-4" />
-            <span>Εξαγωγή</span>
+            <span>Φίλτρα</span>
           </button>
           <button
             onClick={onCreate}
             className="btn btn-primary flex items-center space-x-2"
           >
             <Plus className="h-4 w-4" />
-            <span>Νέα Πληρωμή</span>
+            <span>Νέο Πρόγραμμα</span>
           </button>
         </div>
       </div>
@@ -59,19 +50,20 @@ export function PaymentsHeader({
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Αναζήτηση πληρωμών, κρατήσεων..."
+              placeholder="Αναζήτηση ακινήτων, υπευθύνων..."
               value={searchValue}
               onChange={(e) => onSearch(e.target.value)}
-              className="input pl-10"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           <div className="flex items-center space-x-2">
-            <CreditCard className="h-4 w-4 text-gray-400" />
-            <select className="input">
-              <option value="">Όλες οι μέθοδοι</option>
-              <option value="card">Κάρτα</option>
-              <option value="bank">Τραπεζική μεταφορά</option>
-              <option value="cash">Μετρητά</option>
+            <Calendar className="h-4 w-4 text-gray-400" />
+            <select className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <option value="">Όλες οι ημερομηνίες</option>
+              <option value="today">Σήμερα</option>
+              <option value="week">Αυτή την εβδομάδα</option>
+              <option value="month">Αυτό τον μήνα</option>
+              <option value="overdue">Εκπρόθεσμες</option>
             </select>
           </div>
         </div>
@@ -79,4 +71,3 @@ export function PaymentsHeader({
     </div>
   )
 }
-
