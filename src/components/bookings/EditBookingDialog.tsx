@@ -33,6 +33,8 @@ export function EditBookingDialog({ booking, isOpen, onClose, onSaved }: EditBoo
   const [status, setStatus] = useState<Booking['status']>(booking.status)
   const [paymentStatus, setPaymentStatus] = useState<Booking['paymentStatus']>(booking.paymentStatus)
   const [specialRequests, setSpecialRequests] = useState(booking.specialRequests || '')
+  const [totalPrice, setTotalPrice] = useState(booking.totalPrice)
+  const [basePrice, setBasePrice] = useState(booking.basePrice)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -48,6 +50,8 @@ export function EditBookingDialog({ booking, isOpen, onClose, onSaved }: EditBoo
         status,
         paymentStatus,
         specialRequests: specialRequests || undefined,
+        totalPrice,
+        basePrice,
       } as Partial<Booking>)
       onSaved()
       onClose()
@@ -114,6 +118,36 @@ export function EditBookingDialog({ booking, isOpen, onClose, onSaved }: EditBoo
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
+          </div>
+
+          {/* Pricing */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">
+                Βασική Τιμή (€)
+              </label>
+              <input
+                type="number"
+                value={basePrice}
+                onChange={(e) => setBasePrice(Number(e.target.value))}
+                className="input"
+                min="0"
+                step="0.01"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">
+                Συνολική Τιμή (€)
+              </label>
+              <input
+                type="number"
+                value={totalPrice}
+                onChange={(e) => setTotalPrice(Number(e.target.value))}
+                className="input"
+                min="0"
+                step="0.01"
+              />
+            </div>
           </div>
 
           {/* Special Requests */}

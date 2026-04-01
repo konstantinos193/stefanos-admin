@@ -57,6 +57,26 @@ function nights(ci: string, co: string) {
   return Math.ceil((new Date(co).getTime() - new Date(ci).getTime()) / 86400000)
 }
 
+// Convert English room names to Greek for display
+function getGreekRoomName(roomName: string | null | undefined): string {
+  if (!roomName) return ''
+  
+  const nameMap: Record<string, string> = {
+    'Apartment 01 - Ground Level': 'Διαμέρισμα 01 – Ισόγειο',
+    'Apartment 02 - Ground Level': 'Διαμέρισμα 02 – Ισόγειο',
+    'Apartment 03 - First Floor': 'Διαμέρισμα 03 – Πρώτος Όροφος',
+    'Apartment 04 - First Floor': 'Διαμέρισμα 04 – Πρώτος Όροφος',
+    'Apartment 05 - First Floor': 'Διαμέρισμα 05 – Πρώτος Όροφος',
+    'Apartment 06 - Second Floor': 'Διαμέρισμα 06 – Δεύτερος Όροφος',
+    'Apartment 07 - Second Floor': 'Διαμέρισμα 07 – Δεύτερος Όροφος',
+    'Apartment 08 - Second Floor': 'Διαμέρισμα 08 – Δεύτερος Όροφος',
+    'Apartment 09 - Third Floor': 'Διαμέρισμα 09 – Τρίτος Όροφος',
+    'Apartment 10 - Third Floor': 'Διαμέρισμα 10 – Τρίτος Όροφος',
+  }
+  
+  return nameMap[roomName] || roomName
+}
+
 export function BookingsTable({ filters, onRefreshReady }: BookingsTableProps) {
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
@@ -65,6 +85,8 @@ export function BookingsTable({ filters, onRefreshReady }: BookingsTableProps) {
   const [pending, setPending] = useState<PendingAction | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [editingPrice, setEditingPrice] = useState<string | null>(null)
+  const [tempPrice, setTempPrice] = useState<string>('')
 
   useEffect(() => { fetchBookings() }, [filters])
   useEffect(() => { onRefreshReady?.(fetchBookings) }, [])
@@ -75,6 +97,38 @@ export function BookingsTable({ filters, onRefreshReady }: BookingsTableProps) {
       const response = await bookingsApi.getAll({ limit: 50, ...filters })
       setBookings(response.data?.bookings || [])
     } catch { setBookings([]) } finally { setLoading(false) }
+  }
+
+  async function updatePrice(bookingId: string, newPrice: number) {
+    try {
+      await bookingsApi.update(bookingId, { totalPrice: newPrice, basePrice: newPrice } as Partial<Booking>)
+      await fetchBookings()
+      setEditingPrice(null)
+      setTempPrice('')
+    } catch (e: any) {
+      setActionError(e?.message || 'Σφάλμα κατά την ενημέρωση τιμής')
+    }
+  }
+
+  function startPriceEdit(booking: Booking) {
+    setEditingPrice(booking.id)
+    setTempPrice(booking.totalPrice.toString())
+    setActionError(null)
+  }
+
+  function savePriceEdit(bookingId: string) {
+    const price = parseFloat(tempPrice)
+    if (!isNaN(price) && price > 0) {
+      updatePrice(bookingId, price)
+    } else {
+      setActionError('Μη έγκυρη τιμή')
+    }
+  }
+
+  function cancelPriceEdit() {
+    setEditingPrice(null)
+    setTempPrice('')
+    setActionError(null)
   }
 
   function openAction(type: ActionType, booking: Booking) {
@@ -116,6 +170,11 @@ export function BookingsTable({ filters, onRefreshReady }: BookingsTableProps) {
   return (
     <>
       <div className="card overflow-hidden">
+        {actionError && (
+          <div className="p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+            {actionError}
+          </div>
+        )}
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-slate-800/50 border-b border-slate-700">
@@ -151,7 +210,7 @@ export function BookingsTable({ filters, onRefreshReady }: BookingsTableProps) {
                     <td className="px-4 py-4">
                       {b.roomName && (
                         <div className="flex items-center gap-1 text-sm font-medium text-slate-100">
-                          <BedDouble className="h-3.5 w-3.5 text-amber-400" />{b.roomName}
+                          <BedDouble className="h-3.5 w-3.5 text-amber-400" />{getGreekRoomName(b.roomName)}
                         </div>
                       )}
                       <div className={`text-xs text-slate-400 ${b.roomName ? 'mt-0.5' : ''}`}>
@@ -166,7 +225,45 @@ export function BookingsTable({ filters, onRefreshReady }: BookingsTableProps) {
                       </div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="text-sm font-bold text-slate-100">{formatPrice(b.totalPrice, b.currency)}</div>
+                      {editingPrice === b.id ? (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            value={tempPrice}
+                            onChange={(e) => setTempPrice(e.target.value)}
+                            className="input text-sm w-24"
+                            min="0"
+                            step="0.01"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') savePriceEdit(b.id)
+                              if (e.key === 'Escape') cancelPriceEdit()
+                            }}
+                            autoFocus
+                          />
+                          <button
+                            onClick={() => savePriceEdit(b.id)}
+                            className="text-green-400 hover:text-green-300"
+                            title="Αποθήκευση"
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={cancelPriceEdit}
+                            className="text-red-400 hover:text-red-300"
+                            title="Ακύρωση"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div 
+                          className="text-sm font-bold text-slate-100 cursor-pointer hover:text-blue-400 transition-colors"
+                          onClick={() => startPriceEdit(b)}
+                          title="Κάντε κλικ για να αλλάξετε την τιμή"
+                        >
+                          {formatPrice(b.totalPrice, b.currency)}
+                        </div>
+                      )}
                       {b.source && b.source !== 'DIRECT' && <div className="text-xs text-slate-500 mt-0.5">{b.source}</div>}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
