@@ -2,11 +2,11 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { 
-  LayoutDashboard, 
-  Users, 
-  Building2, 
-  Settings, 
+import {
+  LayoutDashboard,
+  Users,
+  Building2,
+  Settings,
   BarChart3,
   Calendar,
   FileText,
@@ -23,7 +23,8 @@ import {
   Briefcase,
   BookOpen,
   FileSearch,
-  ChevronDown
+  ChevronDown,
+  Globe,
 } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -65,6 +66,7 @@ const navSections: NavSection[] = [
       { href: '/maintenance', label: 'Συντήρηση', icon: Wrench, color: 'text-red-500' },
       { href: '/services', label: 'Υπηρεσίες', icon: Briefcase, color: 'text-amber-500' },
       { href: '/knowledge', label: 'Βάση Γνώσης', icon: BookOpen, color: 'text-slate-500' },
+      { href: '/external-bookings', label: 'Εξωτερικές Κρατήσεις', icon: Globe, color: 'text-sky-500' },
     ],
   },
   {

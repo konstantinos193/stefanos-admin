@@ -79,5 +79,18 @@ export const paymentsApi = {
       body: JSON.stringify({ amount, reason }),
     });
   },
+
+  async schedulePayout(id: string, scheduledFor: string): Promise<{ success: boolean; data: Payment }> {
+    return apiRequest<{ success: boolean; data: Payment }>(`/payments/${id}/schedule-payout`, {
+      method: 'PATCH',
+      body: JSON.stringify({ scheduledFor }),
+    });
+  },
+
+  async markPayoutSent(id: string): Promise<{ success: boolean; data: Payment }> {
+    return apiRequest<{ success: boolean; data: Payment }>(`/payments/${id}/mark-payout-sent`, {
+      method: 'PATCH',
+    });
+  },
 };
 

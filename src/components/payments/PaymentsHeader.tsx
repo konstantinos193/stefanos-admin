@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { Plus, Download, Filter, Search, CreditCard } from 'lucide-react'
 
 interface PaymentsHeaderProps {
@@ -22,60 +23,34 @@ export function PaymentsHeader({
   subtitle = 'Διαχείριση όλων των πληρωμών και συναλλαγών'
 }: PaymentsHeaderProps) {
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
-          <p className="text-gray-600 mt-1">{subtitle}</p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={onFilter}
-            className="btn btn-secondary flex items-center space-x-2"
-          >
-            <Filter className="h-4 w-4" />
-            <span>Φίλτρο</span>
-          </button>
-          <button
-            onClick={onExport}
-            className="btn btn-secondary flex items-center space-x-2"
-          >
-            <Download className="h-4 w-4" />
-            <span>Εξαγωγή</span>
-          </button>
-          <button
-            onClick={onCreate}
-            className="btn btn-primary flex items-center space-x-2"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Νέα Πληρωμή</span>
-          </button>
-        </div>
+    <div className="flex items-center justify-between">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
+        <p className="text-gray-600 mt-1">{subtitle}</p>
       </div>
-
-      {onSearch && (
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Αναζήτηση πληρωμών, κρατήσεων..."
-              value={searchValue}
-              onChange={(e) => onSearch(e.target.value)}
-              className="input pl-10"
-            />
-          </div>
-          <div className="flex items-center space-x-2">
-            <CreditCard className="h-4 w-4 text-gray-400" />
-            <select className="input">
-              <option value="">Όλες οι μέθοδοι</option>
-              <option value="card">Κάρτα</option>
-              <option value="bank">Τραπεζική μεταφορά</option>
-              <option value="cash">Μετρητά</option>
-            </select>
-          </div>
-        </div>
-      )}
+      <div className="flex items-center space-x-3">
+        <button
+          onClick={onFilter}
+          className="btn btn-secondary flex items-center space-x-2"
+        >
+          <Filter className="h-4 w-4" />
+          <span>Φίλτρο</span>
+        </button>
+        <button
+          onClick={onExport}
+          className="btn btn-secondary flex items-center space-x-2"
+        >
+          <Download className="h-4 w-4" />
+          <span>Εξαγωγή</span>
+        </button>
+        <button
+          onClick={onCreate}
+          className="btn btn-primary flex items-center space-x-2"
+        >
+          <Plus className="h-4 w-4" />
+          <span>Νέα Πληρωμή</span>
+        </button>
+      </div>
     </div>
   )
 }

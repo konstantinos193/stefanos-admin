@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Building2, Layers, Star, FileEdit, Users } from 'lucide-react'
+import { Building2, Layers, Star, FileEdit, Users, MessageCircle } from 'lucide-react'
 
 const actions = [
   {
@@ -27,6 +27,14 @@ const actions = [
     href: '/reviews',
     iconBg: 'bg-yellow-500/15',
     iconColor: 'text-yellow-400',
+  },
+  {
+    label: 'Ερωτήματα',
+    description: 'Αιτήματα & ερωτήσεις επισκεπτών',
+    icon: MessageCircle,
+    href: '/inquiries',
+    iconBg: 'bg-pink-500/15',
+    iconColor: 'text-pink-400',
   },
   {
     label: 'Περιεχόμενο',

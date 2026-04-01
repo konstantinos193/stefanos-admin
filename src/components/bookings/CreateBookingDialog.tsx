@@ -85,7 +85,7 @@ export function CreateBookingDialog({ isOpen, onClose, onCreated }: CreateBookin
 
     const selectedRoom = rooms.find(r => r.id === formData.roomId)
     if (!selectedRoom) {
-      setError('Παρακαλώ επιλέξτε δωμάτιο.')
+      setError('Παρακαλώ επιλέξτε διαμέρισμα.')
       return
     }
 
@@ -140,7 +140,7 @@ export function CreateBookingDialog({ isOpen, onClose, onCreated }: CreateBookin
           {/* Room */}
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1">
-              Δωμάτιο <span className="text-red-400">*</span>
+              Διαμέρισμα <span className="text-red-400">*</span>
             </label>
             <select
               name="roomId"
@@ -150,7 +150,7 @@ export function CreateBookingDialog({ isOpen, onClose, onCreated }: CreateBookin
               disabled={loadingRooms}
             >
               <option value="">
-                {loadingRooms ? 'Φόρτωση...' : 'Επιλέξτε δωμάτιο'}
+                {loadingRooms ? 'Φόρτωση...' : 'Επιλέξτε διαμέρισμα'}
               </option>
               {rooms.map(r => (
                 <option key={r.id} value={r.id}>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { BookingsHeader } from '@/components/bookings/BookingsHeader'
 import { BookingsTable } from '@/components/bookings/BookingsTable'
@@ -11,6 +11,7 @@ export default function BookingsPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const urlSearch = searchParams.get('search') || ''
+  const refreshRef = useRef<(() => void) | null>(null)
 
   const [filters, setFilters] = useState<BookingQueryParams>({
     limit: 50,
@@ -42,9 +43,9 @@ export default function BookingsPage() {
 
   return (
     <div className="space-y-6">
-      <BookingsHeader />
+      <BookingsHeader onBookingCreated={() => refreshRef.current?.()} />
       <BookingsFilters filters={filters} onFiltersChange={handleFiltersChange} />
-      <BookingsTable filters={filters} />
+      <BookingsTable filters={filters} onRefreshReady={(fn) => { refreshRef.current = fn }} />
     </div>
   )
 }

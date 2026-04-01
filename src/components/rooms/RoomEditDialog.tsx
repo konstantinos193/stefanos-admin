@@ -181,7 +181,7 @@ export function RoomEditDialog({ room, isOpen, onClose, onSave }: RoomEditDialog
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold text-slate-100">
-                Διαχείριση Δωματίου
+                Διαχείριση Διαμερίσματος
               </h2>
               <p className="text-sm text-slate-400 mt-1">
                 {room.nameGr || room.nameEn || room.name}
@@ -222,7 +222,7 @@ export function RoomEditDialog({ room, isOpen, onClose, onSave }: RoomEditDialog
                 <div>
                   <p className="text-sm font-medium text-slate-200">Διαθεσιμότητα</p>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    {editedRoom.isBookable ? 'Το δωμάτιο είναι διαθέσιμο για κρατήσεις' : 'Το δωμάτιο δεν δέχεται κρατήσεις'}
+                    {editedRoom.isBookable ? 'Το διαμέρισμα είναι διαθέσιμο για κρατήσεις' : 'Το διαμέρισμα δεν δέχεται κρατήσεις'}
                   </p>
                 </div>
                 <button
@@ -272,7 +272,7 @@ export function RoomEditDialog({ room, isOpen, onClose, onSave }: RoomEditDialog
               {/* Room Type */}
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Τύπος Δωματίου
+                  Τύπος Διαμερίσματος
                 </label>
                 <select
                   value={editedRoom.type}
@@ -378,7 +378,7 @@ export function RoomEditDialog({ room, isOpen, onClose, onSave }: RoomEditDialog
                   rows={4}
                   value={editedRoom.descriptionGr || ''}
                   onChange={(e) => setEditedRoom(prev => ({ ...prev, descriptionGr: e.target.value || null }))}
-                  placeholder="Περιγραφή δωματίου στα ελληνικά..."
+                  placeholder="Περιγραφή διαμερίσματος στα ελληνικά..."
                   className="input resize-none"
                   style={{ minHeight: '100px' }}
                 />
@@ -544,7 +544,7 @@ export function RoomEditDialog({ room, isOpen, onClose, onSave }: RoomEditDialog
                     Δεν υπάρχουν εικόνες
                   </h3>
                   <p className="text-sm text-slate-500 text-center mb-4">
-                    Προσθέστε εικόνες για το δωμάτιο για να εμφανίζονται στην κράτηση
+                    Προσθέστε εικόνες για το διαμέρισμα για να εμφανίζονται στην κράτηση
                   </p>
                   <button className="flex items-center gap-2 px-4 py-2 bg-accent-blue hover:bg-blue-600 text-white rounded-lg transition-colors">
                     <Plus className="w-4 h-4" />

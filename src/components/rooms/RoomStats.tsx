@@ -11,7 +11,7 @@ interface RoomStatsProps {
 export function RoomStats({ stats, loading }: RoomStatsProps) {
   const cards = [
     {
-      title: 'Σύνολο Δωματίων',
+      title: 'Σύνολο Διαμερισμάτων',
       value: stats?.totalRooms ?? 0,
       icon: DoorOpen,
       iconColor: 'text-blue-400',

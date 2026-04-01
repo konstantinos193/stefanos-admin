@@ -53,7 +53,7 @@ export const reportsApi = {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reports/download/${reportId}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${localStorage.getItem('admin_token') || localStorage.getItem('token')}`,
       },
     });
     

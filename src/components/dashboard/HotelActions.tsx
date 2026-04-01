@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Calendar, DoorOpen, Sparkles, Wrench, Briefcase, BookOpen } from 'lucide-react'
+import { Calendar, DoorOpen, Sparkles, Wrench, Briefcase, BookOpen, Globe } from 'lucide-react'
 
 const actions = [
   {
@@ -11,6 +11,14 @@ const actions = [
     href: '/bookings',
     iconBg: 'bg-orange-500/15',
     iconColor: 'text-orange-400',
+  },
+  {
+    label: 'Εξωτερικές Κρατήσεις',
+    description: 'Booking.com, Airbnb, VRBO κ.α.',
+    icon: Globe,
+    href: '/external-bookings',
+    iconBg: 'bg-blue-500/15',
+    iconColor: 'text-blue-400',
   },
   {
     label: 'Δωμάτια',

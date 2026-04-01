@@ -42,8 +42,8 @@ export function RoomsHeader({
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-3xl font-bold text-slate-100">Διαχείριση Δωματίων</h1>
-        <p className="text-slate-400 mt-1">Πλήρης διαχείριση δωματίων — τιμές, διαθεσιμότητα, χωρητικότητα & περισσότερα</p>
+        <h1 className="text-3xl font-bold text-slate-100">Διαχείριση Διαμερισμάτων</h1>
+        <p className="text-slate-400 mt-1">Πλήρης διαχείριση διαμερισμάτων — τιμές, διαθεσιμότητα, χωρητικότητα & περισσότερα</p>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -54,7 +54,7 @@ export function RoomsHeader({
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Αναζήτηση δωματίου..."
+            placeholder="Αναζήτηση διαμερίσματος..."
             className="input pl-10"
           />
         </div>

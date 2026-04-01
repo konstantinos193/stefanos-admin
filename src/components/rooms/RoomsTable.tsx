@@ -15,9 +15,15 @@ import {
   BedDouble,
   ToggleLeft,
   ToggleRight,
+  Tag,
+  CalendarDays,
+  Settings,
 } from 'lucide-react'
 import { DashboardRoom, roomsApi } from '@/lib/api/rooms'
 import { RoomEditDialog } from './RoomEditDialog'
+import { RoomPricingDialog } from './RoomPricingDialog'
+import { AvailabilityCalendar } from './AvailabilityCalendar'
+import { TaxManagementDialog } from './TaxManagementDialog'
 
 interface RoomsTableProps {
   rooms: DashboardRoom[]
@@ -58,6 +64,9 @@ function formatPrice(price: number) {
 
 export function RoomsTable({ rooms, loading, searchQuery, filterType, filterStatus, onRoomUpdated }: RoomsTableProps) {
   const [editingRoom, setEditingRoom] = useState<DashboardRoom | null>(null)
+  const [pricingRoom, setPricingRoom] = useState<DashboardRoom | null>(null)
+  const [availabilityRoom, setAvailabilityRoom] = useState<DashboardRoom | null>(null)
+  const [showTaxDialog, setShowTaxDialog] = useState(false)
   const [togglingId, setTogglingId] = useState<string | null>(null)
 
   const filteredRooms = rooms.filter((room) => {
@@ -88,7 +97,7 @@ export function RoomsTable({ rooms, loading, searchQuery, filterType, filterStat
     return (
       <div className="card overflow-hidden">
         <div className="p-6 text-center">
-          <p className="text-slate-400">Φόρτωση δωματίων...</p>
+          <p className="text-slate-400">Φόρτωση διαμερισμάτων...</p>
         </div>
       </div>
     )
@@ -102,7 +111,7 @@ export function RoomsTable({ rooms, loading, searchQuery, filterType, filterStat
             <thead className="bg-slate-800/50 border-b border-slate-700">
               <tr>
                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  Δωμάτιο
+                  Διαμέρισμα
                 </th>
                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">
                   Τύπος
@@ -134,26 +143,15 @@ export function RoomsTable({ rooms, loading, searchQuery, filterType, filterStat
               {filteredRooms.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="px-6 py-12 text-center text-slate-400 text-lg">
-                    Δεν βρέθηκαν δωμάτια
+                    Δεν βρέθηκαν διαμερίσματα
                   </td>
                 </tr>
               ) : (
                 filteredRooms.map((room) => (
                   <tr key={room.id} className="hover:bg-slate-800/50 transition-colors">
-                    {/* Room Name + Image */}
+                    {/* Room Name */}
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
-                        {room.images && room.images.length > 0 ? (
-                          <img
-                            src={room.images[0]}
-                            alt={room.nameGr || room.name}
-                            className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
-                            <BedDouble className="h-5 w-5 text-slate-500" />
-                          </div>
-                        )}
                         <div>
                           <div className="text-sm font-semibold text-slate-100">
                             {room.nameGr || room.nameEn || room.name}
@@ -290,6 +288,20 @@ export function RoomsTable({ rooms, loading, searchQuery, filterType, filterStat
                           )}
                         </button>
                         <button
+                          onClick={() => setAvailabilityRoom(room)}
+                          className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-purple-400 bg-purple-500/15 hover:bg-purple-500/25 rounded-lg transition-colors"
+                        >
+                          <CalendarDays className="h-4 w-4" />
+                          <span>Ημερολόγιο</span>
+                        </button>
+                        <button
+                          onClick={() => setPricingRoom(room)}
+                          className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-amber-400 bg-amber-500/15 hover:bg-amber-500/25 rounded-lg transition-colors"
+                        >
+                          <Tag className="h-4 w-4" />
+                          <span>Τιμές</span>
+                        </button>
+                        <button
                           onClick={() => setEditingRoom(room)}
                           className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-blue-400 bg-blue-500/15 hover:bg-blue-500/25 rounded-lg transition-colors"
                         >
@@ -315,6 +327,61 @@ export function RoomsTable({ rooms, loading, searchQuery, filterType, filterStat
             setEditingRoom(null)
             onRoomUpdated()
           }}
+        />
+      )}
+
+      {pricingRoom && (
+        <RoomPricingDialog
+          room={pricingRoom}
+          isOpen={true}
+          onClose={() => setPricingRoom(null)}
+        />
+      )}
+
+      {availabilityRoom && (
+        <AvailabilityCalendar
+          roomId={availabilityRoom.id}
+          roomName={availabilityRoom.nameGr || availabilityRoom.nameEn || availabilityRoom.name}
+          onClose={() => setAvailabilityRoom(null)}
+          onAvailabilityUpdate={onRoomUpdated}
+        />
+      )}
+
+      {showTaxDialog && (
+        <TaxManagementDialog
+          isOpen={true}
+          onClose={() => setShowTaxDialog(false)}
+          onTaxUpdate={() => {/* Tax update handled globally */}}
+        />
+      )}
+    </>
+  )
+}
+
+// Global tax management button component
+export function RoomsTableWithTaxManagement(props: RoomsTableProps) {
+  const [showTaxDialog, setShowTaxDialog] = useState(false)
+
+  return (
+    <>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <h2 className="text-xl font-semibold text-slate-100">Διαχείριση Διαμερισμάτων</h2>
+        </div>
+        <button
+          onClick={() => setShowTaxDialog(true)}
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-indigo-400 bg-indigo-500/15 hover:bg-indigo-500/25 rounded-lg transition-colors"
+        >
+          <Settings className="h-4 w-4" />
+          <span>Φορολογικές Ρυθμίσεις</span>
+        </button>
+      </div>
+      <RoomsTable {...props} />
+      {showTaxDialog && (
+        <TaxManagementDialog
+          isOpen={true}
+          onClose={() => setShowTaxDialog(false)}
+          onTaxUpdate={() => {/* Tax update handled globally */}}
         />
       )}
     </>

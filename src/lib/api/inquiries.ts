@@ -1,4 +1,5 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+import { API_BASE_URL } from './config';
+const API_BASE = API_BASE_URL;
 
 export interface CreateInquiryData {
   name: string;
@@ -72,7 +73,7 @@ export const inquiriesApi = {
 
     const response = await fetch(`${API_BASE}/inquiries?${searchParams}`, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        Authorization: `Bearer ${localStorage.getItem('admin_token') || localStorage.getItem('token')}`,
       },
     });
 
@@ -86,7 +87,7 @@ export const inquiriesApi = {
   async getById(id: string): Promise<Inquiry> {
     const response = await fetch(`${API_BASE}/inquiries/${id}`, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        Authorization: `Bearer ${localStorage.getItem('admin_token') || localStorage.getItem('token')}`,
       },
     });
 
@@ -102,7 +103,7 @@ export const inquiriesApi = {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        Authorization: `Bearer ${localStorage.getItem('admin_token') || localStorage.getItem('token')}`,
       },
       body: JSON.stringify(data),
     });
@@ -117,7 +118,7 @@ export const inquiriesApi = {
   async getStats() {
     const response = await fetch(`${API_BASE}/inquiries/stats`, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        Authorization: `Bearer ${localStorage.getItem('admin_token') || localStorage.getItem('token')}`,
       },
     });
 

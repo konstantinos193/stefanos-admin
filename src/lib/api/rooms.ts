@@ -81,6 +81,49 @@ export interface RoomQueryParams {
   isBookable?: boolean;
 }
 
+export interface TaxSettings {
+  id: string;
+  vatRate: number; // ΦΠΑ (%)
+  municipalFee: number; // Δημοτικά τέλη (€ ανά διανυκτέρευση)
+  environmentalTax: number; // Περιβαλλοντικός φόρος (€ ανά διανυκτέρευση)
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RoomPricing {
+  id: string;
+  roomId: string;
+  basePrice: number;
+  vatRate: number;
+  municipalFee: number;
+  environmentalTax: number;
+  totalPrice: number; // basePrice + taxes
+  isActive: boolean;
+  validFrom: string;
+  validTo: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PricingRule {
+  id: string;
+  roomId: string;
+  startDate: string;
+  endDate: string;
+  priceOverride: number | null;
+  isAvailable: boolean;
+  reason: string | null;
+  minStayOverride: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PricingRulesResponse {
+  success: boolean;
+  data: PricingRule[];
+}
+
 export const roomsApi = {
   async getDashboardStats(): Promise<RoomDashboardResponse> {
     return apiRequest<RoomDashboardResponse>('/rooms/dashboard-stats');
@@ -120,6 +163,90 @@ export const roomsApi = {
     return apiRequest<{ success: boolean }>(`/rooms/${id}`, {
       method: 'DELETE',
     });
+  },
+
+  async getPricingRules(roomId: string): Promise<PricingRulesResponse> {
+    return apiRequest<PricingRulesResponse>(`/rooms/${roomId}/pricing-rules`);
+  },
+
+  async createPricingRule(roomId: string, data: {
+    startDate: string;
+    endDate: string;
+    priceOverride?: number | null;
+    isAvailable?: boolean;
+    reason?: string;
+    minStayOverride?: number | null;
+  }): Promise<{ success: boolean; data: PricingRule }> {
+    return apiRequest<{ success: boolean; data: PricingRule }>(`/rooms/${roomId}/pricing-rules`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async updatePricingRule(roomId: string, ruleId: string, data: Partial<{
+    startDate: string;
+    endDate: string;
+    priceOverride: number | null;
+    isAvailable: boolean;
+    reason: string;
+    minStayOverride: number | null;
+  }>): Promise<{ success: boolean; data: PricingRule }> {
+    return apiRequest<{ success: boolean; data: PricingRule }>(`/rooms/${roomId}/pricing-rules/${ruleId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async deletePricingRule(roomId: string, ruleId: string): Promise<{ success: boolean }> {
+    return apiRequest<{ success: boolean }>(`/rooms/${roomId}/pricing-rules/${ruleId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Tax Settings API
+  async getTaxSettings(): Promise<{ success: boolean; data: TaxSettings }> {
+    return apiRequest<{ success: boolean; data: TaxSettings }>('/settings/taxes');
+  },
+
+  async updateTaxSettings(data: Partial<TaxSettings>): Promise<{ success: boolean; data: TaxSettings }> {
+    return apiRequest<{ success: boolean; data: TaxSettings }>('/settings/taxes', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Room Pricing API
+  async getRoomPricing(roomId: string): Promise<{ success: boolean; data: RoomPricing[] }> {
+    return apiRequest<{ success: boolean; data: RoomPricing[] }>(`/rooms/${roomId}/pricing`);
+  },
+
+  async updateRoomPricing(roomId: string, data: {
+    basePrice: number;
+    vatRate?: number;
+    municipalFee?: number;
+    environmentalTax?: number;
+  }): Promise<{ success: boolean; data: RoomPricing }> {
+    return apiRequest<{ success: boolean; data: RoomPricing }>(`/rooms/${roomId}/pricing`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Availability Management API
+  async updateRoomAvailability(roomId: string, data: {
+    isAvailable: boolean;
+    reason?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<{ success: boolean }> {
+    return apiRequest<{ success: boolean }>(`/rooms/${roomId}/availability`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async getRoomAvailabilityCalendar(roomId: string, year: number, month: number): Promise<{ success: boolean; data: any[] }> {
+    return apiRequest<{ success: boolean; data: any[] }>(`/rooms/${roomId}/availability-calendar?year=${year}&month=${month}`);
   },
 };
 

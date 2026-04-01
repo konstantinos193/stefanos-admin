@@ -51,10 +51,30 @@ export const bookingsApi = {
     return apiRequest<{ success: boolean; data: { bookings: Booking[]; total: number } }>('/bookings/export');
   },
 
-  async cancel(id: string, reason?: string): Promise<{ success: boolean; data: Booking }> {
-    return apiRequest<{ success: boolean; data: Booking }>(`/bookings/${id}/cancel`, {
+  async cancel(id: string, reason?: string): Promise<{ success: boolean; data: any }> {
+    return apiRequest<{ success: boolean; data: any }>(`/bookings/${id}/cancel`, {
       method: 'POST',
       body: JSON.stringify({ reason }),
+    });
+  },
+
+  async markAsPaid(id: string): Promise<{ success: boolean; data: Booking }> {
+    return apiRequest<{ success: boolean; data: Booking }>(`/bookings/${id}/mark-paid`, {
+      method: 'POST',
+    });
+  },
+
+  async checkIn(id: string, notes?: string): Promise<{ success: boolean; data: Booking }> {
+    return apiRequest<{ success: boolean; data: Booking }>(`/bookings/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status: 'CHECKED_IN', checkInNotes: notes }),
+    });
+  },
+
+  async checkOut(id: string): Promise<{ success: boolean; data: Booking }> {
+    return apiRequest<{ success: boolean; data: Booking }>(`/bookings/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status: 'COMPLETED' }),
     });
   },
 };
