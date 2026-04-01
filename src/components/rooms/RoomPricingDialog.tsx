@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { X, Plus, Trash2, Pencil, Check, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react'
+import { X, Plus, Trash2, Pencil, Check, AlertCircle, ChevronLeft, ChevronRight, Calendar, Settings, Info, Sparkles } from 'lucide-react'
 import { roomsApi, PricingRule, Room } from '@/lib/api/rooms'
+import '@/styles/calendar-animations.css'
 
 interface RoomPricingDialogProps {
   room: Room
@@ -67,7 +68,7 @@ function MonthGrid({ year, month, rules, onHover }: MonthGridProps) {
   while (cells.length % 7 !== 0) cells.push({ day: null, dateStr: null })
 
   return (
-    <div className="select-none">
+    <div className="select-none calendar-transition">
       <p className="text-[11px] font-bold text-slate-300 text-center mb-2 tracking-widest uppercase">
         {MONTH_NAMES_SHORT[month]}
       </p>
@@ -80,33 +81,47 @@ function MonthGrid({ year, month, rules, onHover }: MonthGridProps) {
             return <div key={i} className="w-full aspect-square" />
           }
           const rule = ruleForDate(cell.dateStr, rules)
+          const isToday = new Date().toDateString() === new Date(cell.dateStr).toDateString()
 
-          let bg = 'bg-slate-700/50 hover:bg-slate-600/70'
+          let bg = 'bg-slate-700/50 hover:bg-slate-600/70 calendar-transition'
           let textColor = 'text-slate-500'
+          let extraClasses = ''
+          
           if (rule) {
             if (!rule.isAvailable) {
-              bg = 'bg-red-500/60 hover:bg-red-500/80'
+              bg = 'bg-red-500/60 hover:bg-red-500/80 calendar-transition'
               textColor = 'text-red-100'
+              extraClasses = 'status-indicator'
             } else if (rule.priceOverride != null) {
-              bg = 'bg-amber-500/55 hover:bg-amber-500/75'
+              bg = 'bg-amber-500/55 hover:bg-amber-500/75 calendar-transition'
               textColor = 'text-amber-100'
+              extraClasses = 'calendar-hover-lift'
             } else {
-              bg = 'bg-emerald-600/40 hover:bg-emerald-600/60'
+              bg = 'bg-emerald-600/40 hover:bg-emerald-600/60 calendar-transition'
               textColor = 'text-emerald-200'
+              extraClasses = 'calendar-hover-lift'
             }
+          }
+          
+          if (isToday) {
+            bg += ' ring-2 ring-indigo-400/30'
+            extraClasses += ' status-indicator'
           }
 
           return (
             <div
               key={i}
-              className={`w-full aspect-square rounded-[3px] flex items-center justify-center cursor-default transition-all ${bg}`}
-              onMouseEnter={(e) => {
-                const rect = (e.target as HTMLElement).getBoundingClientRect()
-                onHover({ dateStr: cell.dateStr!, rule, x: rect.left + rect.width / 2, y: rect.top })
-              }}
+              className={`w-full aspect-square rounded-[3px] flex items-center justify-center cursor-default transition-all ${bg} ${extraClasses}`}
+              onMouseEnter={() => onHover({ dateStr: cell.dateStr!, rule, x: 0, y: 0 })}
               onMouseLeave={() => onHover(null)}
+              style={{
+                animationDelay: `${i * 20}ms`,
+                animation: 'fadeIn 0.3s ease-out forwards'
+              }}
             >
-              <span className={`text-[9px] font-semibold leading-none ${textColor}`}>{cell.day}</span>
+              <span className={`text-[9px] font-semibold leading-none ${textColor}`}>
+                {cell.day}
+              </span>
             </div>
           )
         })}

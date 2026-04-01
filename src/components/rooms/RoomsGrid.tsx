@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { roomsApi, Room } from '@/lib/api/rooms'
-import { DoorOpen, Users, Euro, Pencil } from 'lucide-react'
+import { DoorOpen, Users, Euro, Pencil, ImageIcon } from 'lucide-react'
 import { RoomEditDialog } from './RoomEditDialog'
 
 export function RoomsGrid() {
@@ -61,9 +61,13 @@ export function RoomsGrid() {
             {room.images && room.images.length > 0 ? (
               <div className="relative h-48 overflow-hidden rounded-t-lg">
                 <img
-                  src={room.images[0]}
+                  src={room.images[0].startsWith('/') ? room.images[0] : `/${room.images[0]}`}
                   alt={room.nameGr || room.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/placeholder-room.jpg';
+                  }}
                 />
                 {room.images.length > 1 && (
                   <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
@@ -72,8 +76,11 @@ export function RoomsGrid() {
                 )}
               </div>
             ) : (
-              <div className="h-48 bg-gray-100 flex items-center justify-center rounded-t-lg">
-                <p className="text-gray-400">No images</p>
+              <div className="h-48 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center rounded-t-lg">
+                <div className="text-center">
+                  <ImageIcon className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                  <p className="text-slate-500 text-sm">No images</p>
+                </div>
               </div>
             )}
             

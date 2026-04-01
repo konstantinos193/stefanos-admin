@@ -571,9 +571,13 @@ export function RoomEditDialog({ room, isOpen, onClose, onSave }: RoomEditDialog
                 >
                   <div className="relative max-w-4xl max-h-full">
                     <img
-                      src={selectedImage}
+                      src={selectedImage.startsWith('/') ? selectedImage : `/${selectedImage}`}
                       alt="Preview"
                       className="max-w-full max-h-full object-contain rounded-lg"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = '/placeholder-room.jpg';
+                      }}
                     />
                     <button
                       onClick={() => setSelectedImage(null)}

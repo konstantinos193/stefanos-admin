@@ -1,0 +1,214 @@
+/* Calendar Animations - 2026 Best Practices */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Enhanced loading states */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.05),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Smooth transitions */
+.calendar-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.calendar-transition-slow {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover effects */
+.calendar-hover-lift {
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+.calendar-hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+/* Booking cell animations */
+.booking-cell {
+  animation: fadeIn 0.3s ease-out;
+  transition: all 0.2s ease-out;
+}
+
+.booking-cell:hover {
+  transform: scale(1.05);
+  z-index: 10;
+}
+
+/* Status indicators */
+.status-indicator {
+  animation: pulse 2s infinite;
+}
+
+.status-indicator.confirmed {
+  background-color: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.status-indicator.pending {
+  background-color: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.status-indicator.checked-in {
+  background-color: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+/* Modern glass morphism */
+.glass-effect {
+  backdrop-filter: blur(10px);
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(71, 85, 105, 0.3);
+}
+
+.glass-effect-dark {
+  backdrop-filter: blur(15px);
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(51, 65, 85, 0.4);
+}
+
+/* Enhanced tooltips */
+.tooltip-enhanced {
+  opacity: 0;
+  transform: translateY(-5px);
+  transition: all 0.2s ease-out;
+  pointer-events: none;
+}
+
+.tooltip-enhanced.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Loading states */
+.loading-skeleton {
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-skeleton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+/* Focus states for accessibility */
+.focus-enhanced:focus {
+  outline: 2px solid rgba(99, 102, 241, 0.5);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Dark mode optimizations */
+@media (prefers-color-scheme: dark) {
+  .calendar-transition {
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .calendar-transition,
+  .calendar-transition-slow,
+  .calendar-hover-lift,
+  .booking-cell {
+    transition: none;
+    animation: none;
+  }
+  
+  .booking-cell:hover {
+    transform: none;
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .calendar-transition {
+    transition: all 0.2s ease-out;
+  }
+  
+  .booking-cell:hover {
+    transform: scale(1.02);
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .booking-cell {
+    border: 2px solid;
+  }
+  
+  .glass-effect {
+    background: rgba(30, 41, 59, 0.95);
+    border: 1px solid rgba(148, 163, 184, 0.5);
+  }
+}
