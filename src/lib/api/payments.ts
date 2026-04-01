@@ -49,10 +49,13 @@ export interface PaymentsResponse {
 export interface PaymentQueryParams {
   page?: number;
   limit?: number;
+  search?: string;
   status?: string;
   method?: string;
   bookingId?: string;
   propertyId?: string;
+  dateFrom?: string;
+  dateTo?: string;
 }
 
 export const paymentsApi = {
@@ -60,10 +63,13 @@ export const paymentsApi = {
     const queryParams = new URLSearchParams();
     if (params.page) queryParams.append('page', params.page.toString());
     if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.search) queryParams.append('search', params.search);
     if (params.status) queryParams.append('status', params.status);
     if (params.method) queryParams.append('method', params.method);
     if (params.bookingId) queryParams.append('bookingId', params.bookingId);
     if (params.propertyId) queryParams.append('propertyId', params.propertyId);
+    if (params.dateFrom) queryParams.append('dateFrom', params.dateFrom);
+    if (params.dateTo) queryParams.append('dateTo', params.dateTo);
 
     const queryString = queryParams.toString();
     return apiRequest<PaymentsResponse>(`/payments${queryString ? `?${queryString}` : ''}`);

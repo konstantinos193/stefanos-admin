@@ -120,7 +120,7 @@ export function AnalyticsCharts() {
                 tickFormatter={(value) => `€${(value / 1000).toFixed(0)}k`}
               />
               <Tooltip 
-                formatter={(value: number | undefined) => value ? [`€${value.toLocaleString('el-GR')}`, ''] : ['', '']}
+                formatter={(value: any) => value ? [`€${Number(value).toLocaleString('el-GR')}`, ''] : ['', '']}
                 labelFormatter={(label) => new Date(label).toLocaleDateString('el-GR')}
               />
               <Area 
@@ -169,7 +169,7 @@ export function AnalyticsCharts() {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value: number | undefined) => value ? [value.toLocaleString('el-GR'), 'Χρήστες'] : ['', 'Χρήστες']} />
+              <Tooltip formatter={(value: any) => value ? [Number(value).toLocaleString('el-GR'), 'Χρήστες'] : ['', 'Χρήστες']} />
             </RechartsPieChart>
           </ResponsiveContainer>
         </div>
