@@ -89,40 +89,59 @@ export function RoomCalendar() {
       ])
 
       const allRooms: DashboardRoom[] = roomsRes?.data?.rooms || []
+      console.log('Loaded rooms:', allRooms) // Debug log
       setRooms(
         allRooms
           .filter((r) => r.id)
           .map((r) => ({ 
             id: r.id, 
-            name: r.nameGr || r.nameEn || r.name || 'Room',
+            name: r.nameGr || r.nameEn || r.name || `Room ${r.id}`,
             status: r.isOccupied ? 'occupied' : 'available'
           })),
       )
 
       const allBookings: Booking[] = bookingsRes?.data?.bookings || []
+      console.log('Loaded bookings:', allBookings) // Debug log
       const monthBookings: BookingSlot[] = allBookings.filter((b) => {
-        if (!b.roomId) return false
+        // Accept bookings with either roomId or propertyId for property-level bookings
+        if (!b.roomId && !b.propertyId) return false
         if (b.status === 'CANCELLED' || b.status === 'NO_SHOW') return false
         const checkIn = new Date(b.checkIn)
         const checkOut = new Date(b.checkOut)
         return checkIn <= endOfMonth && checkOut >= startOfMonth
-      }).map(b => ({
-        id: b.id,
-        roomId: b.roomId,
-        roomName: allRooms.find(r => r.id === b.roomId)?.nameGr || allRooms.find(r => r.id === b.roomId)?.nameEn || 'Unknown',
-        guestName: b.guestName || 'Unknown',
-        guestEmail: b.guestEmail || undefined,
-        guestPhone: b.guestPhone || undefined,
-        checkIn: b.checkIn,
-        checkOut: b.checkOut,
-        status: b.status,
-        totalPrice: b.totalPrice || 0,
-        currency: b.currency || 'EUR',
-        source: b.source,
-        guests: b.guests || 1,
-        property: b.property
-      }))
+      }).map(b => {
+        // Find room name - try roomId first, then use property title for property-level bookings
+        let roomName = 'Unknown'
+        if (b.roomId) {
+          roomName = allRooms.find(r => r.id === b.roomId)?.nameGr || 
+                    allRooms.find(r => r.id === b.roomId)?.nameEn || 
+                    b.roomName || 
+                    'Unknown'
+        } else if (b.property?.titleGr) {
+          roomName = b.property.titleGr
+        } else if (b.property?.titleEn) {
+          roomName = b.property.titleEn
+        }
+        
+        return {
+          id: b.id,
+          roomId: b.roomId || b.propertyId, // Use propertyId as fallback for roomId
+          roomName,
+          guestName: b.guestName || b.guest?.name || 'Unknown',
+          guestEmail: b.guestEmail || b.guest?.email || undefined,
+          guestPhone: b.guestPhone || b.guest?.phone || undefined,
+          checkIn: b.checkIn,
+          checkOut: b.checkOut,
+          status: b.status,
+          totalPrice: b.totalPrice || 0,
+          currency: b.currency || 'EUR',
+          source: b.source,
+          guests: b.guests || 1,
+          property: b.property
+        }
+      })
       
+      console.log('Processed month bookings:', monthBookings) // Debug log
       setBookings(monthBookings)
     } catch (e: any) {
       console.error('Calendar fetch error:', e)
@@ -136,21 +155,13 @@ export function RoomCalendar() {
     fetchData()
   }, [fetchData])
 
-  // Enhanced loading states with smooth transitions
-  const [isInitialLoad, setIsInitialLoad] = useState(true)
+  // Simplified loading states
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
-
-  useEffect(() => {
-    if (!loading && isInitialLoad) {
-      setTimeout(() => setIsInitialLoad(false), 300) // Smooth transition
-    }
-  }, [loading, isInitialLoad])
 
   const handleRefresh = async () => {
     setIsRefreshing(true)
     await fetchData()
-    setTimeout(() => setIsRefreshing(false), 500) // Longer transition for better UX
+    setTimeout(() => setIsRefreshing(false), 300)
   }
 
   // Add keyboard navigation
@@ -520,15 +531,15 @@ ${booking.source ? `Via ${booking.source}` : ''}`
     )
   }
 
+  // Show skeleton on initial load
+  if (loading && rooms.length === 0) {
+    return <CalendarSkeleton />
+  }
+
   return (
     <div className="card overflow-hidden">
-      {/* Show skeleton on initial load, otherwise show full header */}
-      {isInitialLoad ? (
-        <CalendarSkeleton />
-      ) : (
-        <>
-          {/* Enhanced Header with smooth transitions */}
-          <div className="p-4 border-b border-slate-700 transition-all duration-300">
+      {/* Enhanced Header with smooth transitions */}
+      <div className="p-4 border-b border-slate-700 transition-all duration-300">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <h2 className="font-semibold text-slate-100 flex items-center gap-2">
@@ -629,7 +640,7 @@ ${booking.source ? `Via ${booking.source}` : ''}`
 
           {/* Main Calendar Content with smooth transitions */}
           <div className="relative" ref={calendarRef}>
-            {loading && !isInitialLoad ? (
+            {loading ? (
               <div className="p-8 text-center text-slate-400">
                 <div className="flex items-center justify-center gap-3">
                   <RefreshCw className="h-5 w-5 animate-spin" />
@@ -678,8 +689,6 @@ ${booking.source ? `Via ${booking.source}` : ''}`
               </div>
             </div>
           </div>
-        </>
-      )}
     </div>
   )
 }
