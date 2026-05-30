@@ -20,6 +20,14 @@ export const metadata: Metadata = {
     shortcut: '/logoetc.png',
     apple: '/logoetc.png',
   },
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
 }
 
 export default function RootLayout({
