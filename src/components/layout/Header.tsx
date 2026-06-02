@@ -9,6 +9,7 @@ import { NotificationPopup } from './NotificationPopup'
 const pageNames: Record<string, string> = {
   '/dashboard': 'Πίνακας Ελέγχου',
   '/bookings': 'Κρατήσεις',
+  '/calendar': 'Ημερολόγιο',
   '/rooms': 'Δωμάτια',
   '/cleaning': 'Καθαρισμός',
   '/maintenance': 'Συντήρηση',
@@ -93,7 +94,11 @@ export function Header() {
     inputRef.current?.focus()
   }, [pathname, router])
 
-  const currentPage = pageNames[pathname] || 'Πίνακας Ελέγχου'
+  // Handle dynamic routes
+  const currentPage = pageNames[pathname]
+    ?? (pathname.match(/^\/bookings\/.+/) ? 'Λεπτομέρειες Κράτησης'
+      : pathname.match(/^\/rooms\/.+/)    ? 'Λεπτομέρειες Δωματίου'
+      : 'Πίνακας Ελέγχου')
   const isHome = pathname === '/dashboard'
 
   return (

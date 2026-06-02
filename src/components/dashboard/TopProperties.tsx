@@ -1,50 +1,98 @@
 'use client'
 
-import { Building2, Star, Euro, TrendingUp } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Building2, Euro, TrendingUp } from 'lucide-react'
+import Link from 'next/link'
+import { analyticsApi, type FinancialAnalytics } from '@/lib/api/analytics'
+
+type TopProperty = FinancialAnalytics['properties'][number]
 
 export function TopProperties() {
-  const properties = [
-    { id: '1', name: 'Luxury Apartment Athens', revenue: 12500, bookings: 24, rating: 4.8 },
-    { id: '2', name: 'Beach House Preveza', revenue: 9800, bookings: 18, rating: 4.9 },
-    { id: '3', name: 'City Center Studio', revenue: 7600, bookings: 15, rating: 4.6 },
-    { id: '4', name: 'Mountain Villa', revenue: 11200, bookings: 20, rating: 4.7 },
-  ]
+  const [properties, setProperties] = useState<TopProperty[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchTopProperties() {
+      try {
+        const now = new Date()
+        const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+        const data = await analyticsApi.getFinancialAnalytics({
+          period: 'MONTHLY',
+          startDate: firstOfMonth.toISOString().split('T')[0],
+          endDate: now.toISOString().split('T')[0],
+        })
+        const sorted = [...data.properties]
+          .sort((a, b) => b.revenue - a.revenue)
+          .slice(0, 4)
+        setProperties(sorted)
+      } catch (error: any) {
+        if (!error?.message?.includes('Unauthorized') && !error?.message?.includes('401')) {
+          console.error('Error fetching top properties:', error)
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchTopProperties()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="card">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-slate-100">Κορυφαία Ακίνητα</h2>
+          <TrendingUp className="h-5 w-5 text-emerald-400" />
+        </div>
+        <div className="space-y-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="animate-pulse h-14 bg-slate-700/50 rounded-xl" />
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="card">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-gray-900">Κορυφαία Ακίνητα</h2>
-        <TrendingUp className="h-5 w-5 text-green-500" />
+        <div className="flex items-center gap-3">
+          <TrendingUp className="h-5 w-5 text-emerald-400" />
+          <h2 className="text-xl font-bold text-slate-100">Κορυφαία Ακίνητα</h2>
+        </div>
+        <Link href="/analytics" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
+          Αναλυτικά →
+        </Link>
       </div>
-      <div className="space-y-4">
-        {properties.map((property, index) => (
-          <div key={property.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-            <div className="flex items-center space-x-3 flex-1">
-              <div className="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full font-bold text-sm">
-                {index + 1}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">{property.name}</p>
-                <div className="flex items-center space-x-4 mt-1">
-                  <div className="flex items-center space-x-1">
-                    <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                    <span className="text-xs text-gray-600">{property.rating}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Building2 className="h-3 w-3 text-gray-400" />
-                    <span className="text-xs text-gray-600">{property.bookings} κρατήσεις</span>
+
+      {properties.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-8 text-slate-500">
+          <Building2 className="h-8 w-8 mb-2 text-slate-700" />
+          <p className="text-sm">Δεν υπάρχουν δεδομένα για αυτή την περίοδο</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {properties.map((property, index) => (
+            <div key={property.id} className="flex items-center justify-between p-3 bg-slate-800/50 rounded-xl hover:bg-slate-800 transition-colors">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="flex items-center justify-center w-8 h-8 bg-blue-500/20 text-blue-400 rounded-full font-bold text-sm shrink-0">
+                  {index + 1}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-100 truncate">{property.title}</p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <Building2 className="h-3 w-3 text-slate-500" />
+                    <span className="text-xs text-slate-400">{property.bookings} κρατήσεις</span>
                   </div>
                 </div>
               </div>
+              <div className="flex items-center gap-1 text-emerald-400 shrink-0">
+                <Euro className="h-4 w-4" />
+                <span className="text-sm font-semibold">{property.revenue.toLocaleString('el-GR')}</span>
+              </div>
             </div>
-            <div className="flex items-center space-x-1 text-green-600">
-              <Euro className="h-4 w-4" />
-              <span className="text-sm font-semibold">{property.revenue.toLocaleString('el-GR')}</span>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
-

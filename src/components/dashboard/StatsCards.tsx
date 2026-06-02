@@ -1,20 +1,66 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Users, Building2, Calendar, DollarSign, Clock, CheckCircle } from 'lucide-react'
+import { Users, Building2, Calendar, DollarSign, Clock, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react'
 import { adminApi } from '@/lib/api/admin'
+import { analyticsApi, type AnalyticsMetrics } from '@/lib/api/analytics'
 import { AdminDashboardOverview } from '@/lib/api/types'
+
+interface KpiCard {
+  title: string
+  value: number
+  icon: React.ElementType
+  iconColor: string
+  iconBg: string
+  isCurrency?: boolean
+  trendPercent?: number
+}
+
+function TrendBadge({ percent }: { percent: number }) {
+  if (percent > 0) {
+    return (
+      <div className="flex items-center gap-1 text-emerald-400">
+        <TrendingUp className="h-3 w-3" />
+        <span className="text-xs font-medium">+{percent.toFixed(1)}%</span>
+      </div>
+    )
+  }
+  return (
+    <div className="flex items-center gap-1 text-red-400">
+      <TrendingDown className="h-3 w-3" />
+      <span className="text-xs font-medium">{percent.toFixed(1)}%</span>
+    </div>
+  )
+}
 
 export function StatsCards() {
   const [overview, setOverview] = useState<AdminDashboardOverview | null>(null)
+  const [metrics, setMetrics] = useState<AnalyticsMetrics | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function fetchStats() {
       try {
         setLoading(true)
-        const res = await adminApi.getDashboardStats()
-        setOverview(res.overview)
+        const now = new Date()
+        const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+        const period = {
+          period: 'MONTHLY' as const,
+          startDate: firstOfMonth.toISOString().split('T')[0],
+          endDate: now.toISOString().split('T')[0],
+        }
+
+        const [adminRes] = await Promise.all([
+          adminApi.getDashboardStats(),
+        ])
+        setOverview(adminRes.overview)
+
+        try {
+          const m = await analyticsApi.getDashboardMetrics(period)
+          setMetrics(m)
+        } catch {
+          // metrics are optional; cards still render without trends
+        }
       } catch (error: any) {
         if (!error?.message?.includes('Unauthorized') && !error?.message?.includes('401')) {
           console.error('Error fetching dashboard stats:', error)
@@ -27,13 +73,14 @@ export function StatsCards() {
     fetchStats()
   }, [])
 
-  const cards = [
+  const cards: KpiCard[] = [
     {
       title: 'Χρήστες',
       value: overview?.totalUsers ?? 0,
       icon: Users,
       iconColor: 'text-blue-400',
       iconBg: 'bg-blue-500/15',
+      trendPercent: metrics?.activeUsersChange,
     },
     {
       title: 'Ακίνητα',
@@ -48,6 +95,7 @@ export function StatsCards() {
       icon: Calendar,
       iconColor: 'text-orange-400',
       iconBg: 'bg-orange-500/15',
+      trendPercent: metrics?.bookingsChange,
     },
     {
       title: 'Ενεργές Κρατήσεις',
@@ -70,6 +118,7 @@ export function StatsCards() {
       iconColor: 'text-emerald-400',
       iconBg: 'bg-emerald-500/15',
       isCurrency: true,
+      trendPercent: metrics?.revenueChange,
     },
   ]
 
@@ -78,7 +127,7 @@ export function StatsCards() {
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <div key={i} className="card animate-pulse">
-            <div className="h-24 bg-slate-700 rounded"></div>
+            <div className="h-24 bg-slate-700 rounded" />
           </div>
         ))}
       </div>
@@ -94,16 +143,23 @@ export function StatsCards() {
           : Number(card.value).toLocaleString('el-GR')
 
         return (
-          <div key={card.title} className="card hover:shadow-lg hover:shadow-black/20 transition-shadow text-center p-5">
-            <div className={`${card.iconBg} p-3 rounded-xl inline-flex mb-3`}>
-              <Icon className={`h-6 w-6 ${card.iconColor}`} />
+          <div key={card.title} className="card hover:shadow-lg hover:shadow-black/20 transition-shadow p-5">
+            <div className="flex items-start justify-between mb-3">
+              <div className={`${card.iconBg} p-2.5 rounded-xl`}>
+                <Icon className={`h-5 w-5 ${card.iconColor}`} />
+              </div>
+              {card.trendPercent !== undefined && (
+                <TrendBadge percent={card.trendPercent} />
+              )}
             </div>
             <p className="text-2xl font-bold text-slate-100">{displayValue}</p>
             <p className="text-sm font-medium text-slate-400 mt-1">{card.title}</p>
+            {card.trendPercent !== undefined && (
+              <p className="text-xs text-slate-600 mt-1">vs προηγ. μήνα</p>
+            )}
           </div>
         )
       })}
     </div>
   )
 }
-
