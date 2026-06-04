@@ -18,7 +18,7 @@ function addDays(date: Date, n: number): Date {
   return d
 }
 function toStr(date: Date): string {
-  return date.toISOString().split('T')[0]
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 function getMonday(date: Date): Date {
   const d = new Date(date)
