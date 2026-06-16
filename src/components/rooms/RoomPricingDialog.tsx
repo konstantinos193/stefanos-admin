@@ -33,7 +33,7 @@ function ruleForDate(dateStr: string, rules: PricingRule[]): PricingRule | null 
   for (const r of rules) {
     const start = r.startDate.slice(0, 10)
     const end = r.endDate.slice(0, 10)
-    if (dateStr >= start && dateStr <= end) return r
+    if (dateStr >= start && dateStr < end) return r
   }
   return null
 }
@@ -218,13 +218,13 @@ function SeasonView({ year, rules, basePrice }: { year: number; rules: PricingRu
 
 function getMonthPresets(year: number) {
   return [
-    { label: 'Απρ', start: `${year}-04-01`, end: `${year}-04-30` },
-    { label: 'Μαι', start: `${year}-05-01`, end: `${year}-05-31` },
-    { label: 'Ιουν', start: `${year}-06-01`, end: `${year}-06-30` },
+    { label: 'Απρ', start: `${year}-04-01`, end: `${year}-05-01` },
+    { label: 'Μαι', start: `${year}-05-01`, end: `${year}-06-01` },
+    { label: 'Ιουν', start: `${year}-06-01`, end: `${year}-07-01` },
     { label: 'Ιουλ', start: `${year}-07-01`, end: `${year}-07-31` },
-    { label: 'Αυγ', start: `${year}-08-01`, end: `${year}-08-31` },
-    { label: 'Σεπ', start: `${year}-09-01`, end: `${year}-09-30` },
-    { label: 'Οκτ', start: `${year}-10-01`, end: `${year}-10-31` },
+    { label: 'Αυγ', start: `${year}-07-31`, end: `${year}-09-01` },
+    { label: 'Σεπ', start: `${year}-09-01`, end: `${year}-10-01` },
+    { label: 'Οκτ', start: `${year}-10-01`, end: `${year}-11-01` },
   ]
 }
 
@@ -446,7 +446,7 @@ export function RoomPricingDialog({ room, isOpen, onClose }: RoomPricingDialogPr
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Έως (συμπεριλαμβανομένης)</label>
+                    <label className="block text-xs text-slate-400 mb-1">Έως (μη συμπεριλαμβανομένης — αποκλειστική)</label>
                     <input
                       type="date"
                       value={form.endDate}
