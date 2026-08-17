@@ -121,7 +121,7 @@ export function AnalyticsCharts() {
               />
               <Tooltip 
                 formatter={(value: any) => value ? [`€${Number(value).toLocaleString('el-GR')}`, ''] : ['', '']}
-                labelFormatter={(label) => new Date(label).toLocaleDateString('el-GR')}
+                labelFormatter={(label: any) => new Date(label).toLocaleDateString('el-GR')}
               />
               <Area 
                 type="monotone" 
@@ -194,7 +194,7 @@ export function AnalyticsCharts() {
               />
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip 
-                labelFormatter={(label) => new Date(label).toLocaleDateString('el-GR')}
+                labelFormatter={(label: any) => new Date(label).toLocaleDateString('el-GR')}
               />
               <Line 
                 type="monotone" 
@@ -236,7 +236,7 @@ export function AnalyticsCharts() {
               />
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip 
-                labelFormatter={(label) => new Date(label).toLocaleDateString('el-GR')}
+                labelFormatter={(label: any) => new Date(label).toLocaleDateString('el-GR')}
               />
               <Bar dataKey="users" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
               <Bar dataKey="bookings" fill="#EC4899" radius={[4, 4, 0, 0]} />

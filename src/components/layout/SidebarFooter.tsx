@@ -6,12 +6,16 @@ import { useAuth } from '@/lib/auth/AuthContext'
 
 interface SidebarFooterProps {
   isCollapsed: boolean
+  isMobileOpen?: boolean
 }
 
-export function SidebarFooter({ isCollapsed }: SidebarFooterProps) {
+export function SidebarFooter({ isCollapsed, isMobileOpen }: SidebarFooterProps) {
   const { user, logout } = useAuth()
 
-  if (isCollapsed) {
+  // Always show expanded on mobile when drawer is open
+  const shouldShowCollapsed = isCollapsed && !isMobileOpen
+
+  if (shouldShowCollapsed) {
     return (
       <div className="border-t border-slate-800 p-2 flex flex-col items-center gap-2 shrink-0">
         {/* Avatar tooltip */}

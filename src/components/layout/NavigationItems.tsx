@@ -32,6 +32,7 @@ import clsx from 'clsx'
 interface NavigationItemsProps {
   pathname: string
   isCollapsed: boolean
+  isMobileOpen?: boolean
 }
 
 interface NavItem {
@@ -273,8 +274,10 @@ function ExpandedNav({ pathname }: { pathname: string }) {
 
 // ── Public component ──────────────────────────────────────────────────────────
 
-export function NavigationItems({ pathname, isCollapsed }: NavigationItemsProps) {
-  return isCollapsed ? (
+export function NavigationItems({ pathname, isCollapsed, isMobileOpen }: NavigationItemsProps) {
+  // Always show expanded on mobile when drawer is open
+  const shouldShowCollapsed = isCollapsed && !isMobileOpen
+  return shouldShowCollapsed ? (
     <CollapsedNav pathname={pathname} />
   ) : (
     <ExpandedNav pathname={pathname} />

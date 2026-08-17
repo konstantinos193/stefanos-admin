@@ -13,10 +13,10 @@ interface EditBookingDialogProps {
 }
 
 const statusOptions: { value: Booking['status']; label: string }[] = [
-  { value: 'PENDING', label: 'Σε Αναμονή' },
-  { value: 'CONFIRMED', label: 'Επιβεβαιωμένη' },
-  { value: 'CHECKED_IN', label: 'Check-in' },
-  { value: 'COMPLETED', label: 'Ολοκληρωμένη' },
+  { value: 'PENDING', label: '🟠 Εκκρεμεί Πληρωμή' },
+  { value: 'CONFIRMED', label: '🟢 Επιβεβαιωμένη' },
+  { value: 'CHECKED_IN', label: '🟣 Check-in (Μέσα)' },
+  { value: 'COMPLETED', label: '🔵 Ολοκληρωμένη (Εξοφλημένη)' },
   { value: 'CANCELLED', label: 'Ακυρωμένη' },
   { value: 'NO_SHOW', label: 'Απουσία' },
 ]

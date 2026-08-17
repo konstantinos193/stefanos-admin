@@ -17,7 +17,7 @@ const STATUS_TABS: {
   dot?: string
 }[] = [
   { value: '', label: 'Όλες' },
-  { value: 'PENDING', label: 'Εκκρεμείς', dot: 'bg-yellow-400' },
+  { value: 'PENDING', label: 'Εκκρεμείς', dot: 'bg-orange-400' },
   { value: 'CONFIRMED', label: 'Επιβεβαιωμένες', dot: 'bg-green-400' },
   { value: 'CHECKED_IN', label: 'Check-in', dot: 'bg-purple-400' },
   { value: 'COMPLETED', label: 'Ολοκληρωμένες', dot: 'bg-blue-400' },
@@ -53,7 +53,7 @@ function StatusTabs({
   const total = Object.values(counts).reduce((s, n) => s + n, 0)
 
   return (
-    <div className="flex items-center gap-1 overflow-x-auto bg-slate-800/50 border border-slate-700/50 rounded-xl p-1.5">
+    <div className="flex items-center gap-1 overflow-x-auto bg-slate-800/50 border border-slate-700/50 rounded-xl p-1.5 scrollbar-thin">
       {STATUS_TABS.map((tab) => {
         const count = tab.value === '' ? total : (counts[tab.value] ?? null)
         const isActive = activeTab === tab.value
@@ -61,7 +61,7 @@ function StatusTabs({
           <button
             key={tab.value}
             onClick={() => onTabChange(tab.value as StatusValue)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-base font-semibold whitespace-nowrap transition-all duration-150 ${
+            className={`flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg text-sm sm:text-base font-semibold whitespace-nowrap transition-all duration-150 ${
               isActive
                 ? 'bg-blue-500/20 text-blue-400 shadow-sm'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
@@ -150,7 +150,7 @@ export default function BookingsPage() {
   )
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4 md:space-y-5 overflow-x-hidden">
       <BookingsHeader onBookingCreated={() => refreshRef.current?.()} />
       <StatusTabs activeTab={statusTab} onTabChange={handleTabChange} />
       <BookingsFilters filters={filters} onFiltersChange={handleFiltersChange} />

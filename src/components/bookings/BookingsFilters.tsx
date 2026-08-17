@@ -129,7 +129,7 @@ export function BookingsFilters({ filters, onFiltersChange }: BookingsFiltersPro
 
   return (
     <div className="card">
-      <div className="flex flex-col xl:flex-row xl:items-center gap-4">
+      <div className="flex flex-col gap-4">
         {/* Search */}
         <div className="flex-1 relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none" />
@@ -137,7 +137,7 @@ export function BookingsFilters({ filters, onFiltersChange }: BookingsFiltersPro
             type="text"
             value={searchValue}
             onChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="Αναζήτηση με όνομα, email, τηλέφωνο ή ID κράτησης..."
+            placeholder="Αναζήτηση..."
             className="input pl-12 pr-10 py-3 text-base"
           />
           {searchValue && (
@@ -152,7 +152,7 @@ export function BookingsFilters({ filters, onFiltersChange }: BookingsFiltersPro
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           {/* Date range picker */}
-          <div ref={calendarRef} className="relative">
+          <div ref={calendarRef} className="relative flex-1 sm:flex-none">
             <button
               onClick={() => {
                 setCalendarOpen(!calendarOpen)
@@ -167,7 +167,7 @@ export function BookingsFilters({ filters, onFiltersChange }: BookingsFiltersPro
                   }
                 }
               }}
-              className={`input w-full sm:w-72 text-left flex items-center gap-2 cursor-pointer py-3 ${
+              className={`input w-full text-left flex items-center gap-2 cursor-pointer py-3 ${
                 filters.dateFrom ? 'border-accent-blue/50' : ''
               }`}
             >
@@ -279,7 +279,7 @@ export function BookingsFilters({ filters, onFiltersChange }: BookingsFiltersPro
               title="Καθαρισμός φίλτρων"
             >
               <RotateCcw className="h-4 w-4" />
-              <span className="sm:inline hidden text-sm">Καθαρισμός</span>
+              <span className="text-sm">Καθαρισμός</span>
             </button>
           )}
         </div>

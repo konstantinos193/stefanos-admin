@@ -34,22 +34,23 @@ const MONTHS_FULL  = ['Ιανουάριος','Φεβρουάριος','Μάρτ�
 
 // ── Status styles ─────────────────────────────────────────────────────────────
 
+// PENDING = κρατημένο αλλά απλήρωτο (πορτοκαλί) · COMPLETED = εξοφλημένο (μπλε)
 const STATUS_START: Record<string, string> = {
+  PENDING:    'bg-orange-500/35 border-l-2 border-orange-500',
   CONFIRMED:  'bg-green-500/30 border-l-2 border-green-500',
   CHECKED_IN: 'bg-purple-500/30 border-l-2 border-purple-500',
-  PENDING:    'bg-yellow-500/30 border-l-2 border-yellow-500',
-  COMPLETED:  'bg-blue-500/20  border-l-2 border-blue-500',
+  COMPLETED:  'bg-blue-500/30  border-l-2 border-blue-500',
 }
 const STATUS_CONT: Record<string, string> = {
+  PENDING:    'bg-orange-500/18',
   CONFIRMED:  'bg-green-500/15',
   CHECKED_IN: 'bg-purple-500/15',
-  PENDING:    'bg-yellow-500/15',
-  COMPLETED:  'bg-blue-500/10',
+  COMPLETED:  'bg-blue-500/15',
 }
 const STATUS_DOT: Record<string, string> = {
+  PENDING:    'bg-orange-500',
   CONFIRMED:  'bg-green-500',
   CHECKED_IN: 'bg-purple-500',
-  PENDING:    'bg-yellow-500',
   COMPLETED:  'bg-blue-500',
 }
 
@@ -365,10 +366,10 @@ export default function CalendarPage() {
         <div className="flex flex-wrap items-center gap-5 px-5 py-3 border-t border-slate-700/50 bg-slate-800/30">
           <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Κατάσταση:</span>
           {[
-            { label: 'Επιβεβαιωμένη', cls: 'bg-green-500' },
-            { label: 'Check-in (Μέσα)', cls: 'bg-purple-500' },
-            { label: 'Εκκρεμεί',        cls: 'bg-yellow-500' },
-            { label: 'Ολοκληρωμένη',    cls: 'bg-blue-500' },
+            { label: 'Εκκρεμεί πληρωμή',  cls: 'bg-orange-500' },
+            { label: 'Επιβεβαιωμένη',     cls: 'bg-green-500' },
+            { label: 'Check-in (Μέσα)',   cls: 'bg-purple-500' },
+            { label: 'Ολοκληρωμένη (Εξοφλημένη)', cls: 'bg-blue-500' },
           ].map(s => (
             <div key={s.label} className="flex items-center gap-1.5">
               <span className={`w-3 h-3 rounded-sm ${s.cls} opacity-70`} />

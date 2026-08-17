@@ -11,6 +11,8 @@ interface CreateBookingDialogProps {
   onCreated: () => void
 }
 
+type BookingStatus = 'PENDING' | 'CONFIRMED' | 'CHECKED_IN' | 'COMPLETED'
+
 interface BookingFormData {
   roomId: string
   guestName: string
@@ -20,7 +22,15 @@ interface BookingFormData {
   checkOut: string
   guests: number
   specialRequests: string
+  status: BookingStatus
 }
+
+const statusOptions: { value: BookingStatus; label: string }[] = [
+  { value: 'PENDING', label: '🟠 Εκκρεμεί Πληρωμή' },
+  { value: 'CONFIRMED', label: '🟢 Επιβεβαιωμένη' },
+  { value: 'CHECKED_IN', label: '🟣 Check-in (Μέσα)' },
+  { value: 'COMPLETED', label: '🔵 Ολοκληρωμένη (Εξοφλημένη)' },
+]
 
 const initialFormData: BookingFormData = {
   roomId: '',
@@ -31,6 +41,8 @@ const initialFormData: BookingFormData = {
   checkOut: '',
   guests: 1,
   specialRequests: '',
+  // Νέες κρατήσεις ξεκινούν σε αναμονή (πορτοκαλί) μέχρι να εξοφληθούν
+  status: 'PENDING',
 }
 
 export function CreateBookingDialog({ isOpen, onClose, onCreated }: CreateBookingDialogProps) {
@@ -102,6 +114,7 @@ export function CreateBookingDialog({ isOpen, onClose, onCreated }: CreateBookin
         checkOut: formData.checkOut,
         guests: formData.guests,
         specialRequests: formData.specialRequests || null,
+        status: formData.status,
       })
       onCreated()
       onClose()
@@ -247,6 +260,26 @@ export function CreateBookingDialog({ isOpen, onClose, onCreated }: CreateBookin
               max={20}
               className="input"
             />
+          </div>
+
+          {/* Status */}
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-1">
+              Κατάσταση Κράτησης
+            </label>
+            <select
+              name="status"
+              value={formData.status}
+              onChange={handleChange}
+              className="input"
+            >
+              {statusOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            <p className="text-xs text-slate-500 mt-1">
+              Οι νέες κρατήσεις μπαίνουν σε αναμονή (πορτοκαλί) μέχρι να εξοφληθούν.
+            </p>
           </div>
 
           {/* Special Requests */}

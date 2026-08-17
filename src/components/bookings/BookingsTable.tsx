@@ -10,6 +10,8 @@ import {
 } from 'lucide-react'
 import { bookingsApi, BookingQueryParams } from '@/lib/api/bookings'
 import { Booking } from '@/lib/api/types'
+import { countNights, formatMoney, formatShortDate } from '@/lib/bookings/booking-format'
+import { getPaymentStatusPresentation, getRoomLabel, getStatusPresentation } from '@/lib/bookings/booking-labels'
 import { EditBookingDialog } from './EditBookingDialog'
 import { DeleteBookingDialog } from './DeleteBookingDialog'
 
@@ -31,56 +33,6 @@ interface MenuState {
   id: string
   top: number
   right: number
-}
-
-const STATUS_COLOR: Record<string, string> = {
-  CONFIRMED:  'bg-green-500/15 text-green-400 border border-green-500/20',
-  PENDING:    'bg-yellow-500/15 text-yellow-400 border border-yellow-500/20',
-  COMPLETED:  'bg-blue-500/15 text-blue-400 border border-blue-500/20',
-  CHECKED_IN: 'bg-purple-500/15 text-purple-400 border border-purple-500/20',
-  CANCELLED:  'bg-red-500/15 text-red-400 border border-red-500/20',
-  NO_SHOW:    'bg-slate-500/15 text-slate-400 border border-slate-500/20',
-}
-const STATUS_LABEL: Record<string, string> = {
-  CONFIRMED: 'Επιβεβαιωμένη', PENDING: 'Σε Αναμονή', COMPLETED: 'Ολοκληρωμένη',
-  CHECKED_IN: 'Check-in', CANCELLED: 'Ακυρωμένη', NO_SHOW: 'Απουσία',
-}
-const PAY_COLOR: Record<string, string> = {
-  COMPLETED:          'bg-green-500/15 text-green-400',
-  PENDING:            'bg-yellow-500/15 text-yellow-400',
-  FAILED:             'bg-red-500/15 text-red-400',
-  REFUNDED:           'bg-orange-500/15 text-orange-400',
-  PARTIALLY_REFUNDED: 'bg-orange-500/15 text-orange-400',
-}
-const PAY_LABEL: Record<string, string> = {
-  COMPLETED: 'Πληρωμένη', PENDING: 'Εκκρεμεί', FAILED: 'Απέτυχε',
-  REFUNDED: 'Επιστροφή', PARTIALLY_REFUNDED: 'Μερική Επιστ.',
-}
-
-function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('el-GR', { day: '2-digit', month: 'short', year: 'numeric' })
-}
-function formatPrice(p: number, c = 'EUR') {
-  return new Intl.NumberFormat('el-GR', { style: 'currency', currency: c, minimumFractionDigits: 0 }).format(p)
-}
-function nights(ci: string, co: string) {
-  return Math.ceil((new Date(co).getTime() - new Date(ci).getTime()) / 86400000)
-}
-function getGreekRoomName(roomName: string | null | undefined): string {
-  if (!roomName) return ''
-  const map: Record<string, string> = {
-    'Apartment 01 - Ground Level':  'Διαμέρισμα 01 – Ισόγειο',
-    'Apartment 02 - Ground Level':  'Διαμέρισμα 02 – Ισόγειο',
-    'Apartment 03 - First Floor':   'Διαμέρισμα 03 – Α΄ Όροφος',
-    'Apartment 04 - First Floor':   'Διαμέρισμα 04 – Α΄ Όροφος',
-    'Apartment 05 - First Floor':   'Διαμέρισμα 05 – Α΄ Όροφος',
-    'Apartment 06 - Second Floor':  'Διαμέρισμα 06 – Β΄ Όροφος',
-    'Apartment 07 - Second Floor':  'Διαμέρισμα 07 – Β΄ Όροφος',
-    'Apartment 08 - Second Floor':  'Διαμέρισμα 08 – Β΄ Όροφος',
-    'Apartment 09 - Third Floor':   'Διαμέρισμα 09 – Γ΄ Όροφος',
-    'Apartment 10 - Third Floor':   'Διαμέρισμα 10 – Γ΄ Όροφος',
-  }
-  return map[roomName] || roomName
 }
 
 export function BookingsTable({ filters, onRefreshReady }: BookingsTableProps) {
@@ -160,11 +112,138 @@ export function BookingsTable({ filters, onRefreshReady }: BookingsTableProps) {
     <>
       <div className="card p-0 overflow-hidden">
         {actionError && (
-          <div className="px-6 py-3 bg-red-500/10 border-b border-red-500/30 text-red-400 text-sm">
+          <div className="px-4 md:px-6 py-3 bg-red-500/10 border-b border-red-500/30 text-red-400 text-sm">
             {actionError}
           </div>
         )}
-        <div className="overflow-x-auto">
+
+        {/* Mobile Card Layout */}
+        <div className="md:hidden space-y-3 p-3 overflow-x-hidden">
+          {bookings.length === 0 ? (
+            <div className="text-center py-16 text-slate-400 text-base">
+              Δεν βρέθηκαν κρατήσεις
+            </div>
+          ) : (
+            bookings.map((b) => {
+              const n = countNights(b.checkIn, b.checkOut)
+              const phone = b.guestPhone || b.guest?.phone
+              const canCancel    = !['CANCELLED', 'COMPLETED', 'NO_SHOW'].includes(b.status)
+              const canMarkPaid  = b.paymentStatus !== 'COMPLETED' && !['CANCELLED', 'NO_SHOW'].includes(b.status)
+              const canCheckIn   = b.status === 'CONFIRMED'
+              const canCheckOut  = b.status === 'CHECKED_IN'
+
+              return (
+                <div
+                  key={b.id}
+                  onClick={() => router.push(`/bookings/${b.id}`)}
+                  className="bg-slate-800/40 rounded-xl p-3 space-y-3 border border-slate-700/50 cursor-pointer hover:bg-slate-800/60 transition-colors w-full"
+                >
+                  {/* Guest & Status */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-base font-semibold text-slate-100 truncate">
+                        {b.guestName || b.guest?.name || '—'}
+                      </p>
+                      {phone && (
+                        <div className="flex items-center gap-1 mt-1 text-sm text-slate-400">
+                          <Phone className="h-3 w-3" />
+                          <span className="truncate">{phone}</span>
+                        </div>
+                      )}
+                      <p className="text-xs text-slate-500 mt-1">#{b.id.slice(-6)}</p>
+                    </div>
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-lg ${getStatusPresentation(b.status).chip} flex-shrink-0`}>
+                      {b.status === 'CONFIRMED' || b.status === 'COMPLETED'
+                        ? <CheckCircle className="h-3 w-3" />
+                        : <Clock className="h-3 w-3" />
+                      }
+                      {getStatusPresentation(b.status).label}
+                    </span>
+                  </div>
+
+                  {/* Property & Room */}
+                  <div>
+                    {b.roomName && (
+                      <div className="flex items-center gap-1 text-sm font-semibold text-slate-100">
+                        <BedDouble className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                        <span className="truncate">{getRoomLabel(b.roomName)}</span>
+                      </div>
+                    )}
+                    <p className={`text-sm text-slate-400 ${b.roomName ? 'mt-1' : ''} truncate`}>
+                      {b.property?.titleGr || b.propertyId}
+                </p>
+                  </div>
+
+                  {/* Dates */}
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <p className="text-slate-400 text-xs mb-1">Άφιξη</p>
+                      <p className="text-slate-200 truncate">{formatShortDate(b.checkIn)}</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-400 text-xs mb-1">Αναχώρηση</p>
+                      <p className="text-slate-200 truncate">{formatShortDate(b.checkOut)}</p>
+                    </div>
+                  </div>
+
+                  {/* Price & Payment */}
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-700/50">
+                    <div className="min-w-0">
+                      <p className="text-base font-bold text-slate-100 truncate">
+                        {formatMoney(b.totalPrice, b.currency)}
+                      </p>
+                      <span className={`inline-flex items-center gap-1 mt-1 px-2 py-0.5 text-xs font-semibold rounded-lg ${getPaymentStatusPresentation(b.paymentStatus).chip}`}>
+                        <CreditCard className="h-3 w-3" />
+                        {getPaymentStatusPresentation(b.paymentStatus).label}
+                      </span>
+                    </div>
+                    <div
+                      className="flex items-center gap-1 flex-shrink-0"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* Primary action */}
+                      {canCheckIn && (
+                        <button
+                          onClick={(e) => openAction(e, 'check-in', b)}
+                          className="flex items-center gap-1 px-2 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors"
+                        >
+                          <LogIn className="h-4 w-4" />
+                        </button>
+                      )}
+                      {canCheckOut && (
+                        <button
+                          onClick={(e) => openAction(e, 'check-out', b)}
+                          className="flex items-center gap-1 px-2 py-2 text-sm font-semibold text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
+                        >
+                          <LogOut className="h-4 w-4" />
+                        </button>
+                      )}
+                      {!canCheckIn && !canCheckOut && canMarkPaid && (
+                        <button
+                          onClick={(e) => openAction(e, 'mark-paid', b)}
+                          className="flex items-center gap-1 px-2 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                        >
+                          <BanknoteIcon className="h-4 w-4" />
+                        </button>
+                      )}
+
+                      {/* Overflow menu */}
+                      <button
+                        onClick={(e) => openMenuAt(e, b.id)}
+                        className="p-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-700 transition-colors"
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })
+          )}
+        </div>
+
+        {/* Desktop Table Layout */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead className="bg-slate-800/60 border-b border-slate-700">
               <tr>
@@ -194,7 +273,7 @@ export function BookingsTable({ filters, onRefreshReady }: BookingsTableProps) {
                 </tr>
               ) : (
                 bookings.map((b) => {
-                  const n = nights(b.checkIn, b.checkOut)
+                  const n = countNights(b.checkIn, b.checkOut)
                   const phone = b.guestPhone || b.guest?.phone
                   const canCancel    = !['CANCELLED', 'COMPLETED', 'NO_SHOW'].includes(b.status)
                   const canMarkPaid  = b.paymentStatus !== 'COMPLETED' && !['CANCELLED', 'NO_SHOW'].includes(b.status)
@@ -226,7 +305,7 @@ export function BookingsTable({ filters, onRefreshReady }: BookingsTableProps) {
                         {b.roomName && (
                           <div className="flex items-center gap-1.5 text-sm font-semibold text-slate-100">
                             <BedDouble className="h-4 w-4 text-amber-400 shrink-0" />
-                            {getGreekRoomName(b.roomName)}
+                            {getRoomLabel(b.roomName)}
                           </div>
                         )}
                         <p className={`text-sm text-slate-400 ${b.roomName ? 'mt-1' : ''}`}>
@@ -237,10 +316,10 @@ export function BookingsTable({ filters, onRefreshReady }: BookingsTableProps) {
                       {/* Dates */}
                       <td className="px-5 py-5 whitespace-nowrap">
                         <p className="text-sm font-medium text-slate-200">
-                          {formatDate(b.checkIn)}
+                          {formatShortDate(b.checkIn)}
                         </p>
                         <p className="text-sm text-slate-400 mt-0.5">
-                          {formatDate(b.checkOut)}
+                          {formatShortDate(b.checkOut)}
                         </p>
                         <div className="flex items-center gap-3 mt-2 text-xs text-slate-500">
                           <span className="flex items-center gap-1">
@@ -257,22 +336,22 @@ export function BookingsTable({ filters, onRefreshReady }: BookingsTableProps) {
                       {/* Price + Payment */}
                       <td className="px-5 py-5 whitespace-nowrap">
                         <p className="text-base font-bold text-slate-100">
-                          {formatPrice(b.totalPrice, b.currency)}
+                          {formatMoney(b.totalPrice, b.currency)}
                         </p>
-                        <span className={`inline-flex items-center gap-1 mt-1.5 px-2 py-1 text-xs font-semibold rounded-lg ${PAY_COLOR[b.paymentStatus] || 'bg-slate-500/15 text-slate-400'}`}>
+                        <span className={`inline-flex items-center gap-1 mt-1.5 px-2 py-1 text-xs font-semibold rounded-lg ${getPaymentStatusPresentation(b.paymentStatus).chip}`}>
                           <CreditCard className="h-3 w-3" />
-                          {PAY_LABEL[b.paymentStatus] || b.paymentStatus}
+                          {getPaymentStatusPresentation(b.paymentStatus).label}
                         </span>
                       </td>
 
                       {/* Status */}
                       <td className="px-5 py-5 whitespace-nowrap">
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-xl ${STATUS_COLOR[b.status] || 'bg-slate-500/15 text-slate-400'}`}>
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-xl ${getStatusPresentation(b.status).chip}`}>
                           {b.status === 'CONFIRMED' || b.status === 'COMPLETED'
                             ? <CheckCircle className="h-4 w-4" />
                             : <Clock className="h-4 w-4" />
                           }
-                          {STATUS_LABEL[b.status] || b.status}
+                          {getStatusPresentation(b.status).label}
                         </span>
                       </td>
 
@@ -395,13 +474,13 @@ export function BookingsTable({ filters, onRefreshReady }: BookingsTableProps) {
                 <p className="text-base font-semibold text-slate-100">{pending.booking.guestName || pending.booking.guest?.name}</p>
                 <p className="text-sm text-slate-400">
                   {pending.booking.property?.titleGr}
-                  {pending.booking.roomName ? ` — ${getGreekRoomName(pending.booking.roomName)}` : ''}
+                  {pending.booking.roomName ? ` — ${getRoomLabel(pending.booking.roomName)}` : ''}
                 </p>
                 <p className="text-sm text-slate-400">
-                  {formatDate(pending.booking.checkIn)} → {formatDate(pending.booking.checkOut)}
+                  {formatShortDate(pending.booking.checkIn)} → {formatShortDate(pending.booking.checkOut)}
                 </p>
                 <p className="text-base font-bold text-slate-100">
-                  {formatPrice(pending.booking.totalPrice, pending.booking.currency)}
+                  {formatMoney(pending.booking.totalPrice, pending.booking.currency)}
                 </p>
               </div>
 
@@ -430,7 +509,7 @@ export function BookingsTable({ filters, onRefreshReady }: BookingsTableProps) {
                 <div className="flex items-start gap-2 p-3 bg-green-900/20 border border-green-800/40 rounded-xl">
                   <BanknoteIcon className="h-4 w-4 text-green-400 shrink-0 mt-0.5" />
                   <p className="text-sm text-green-300">
-                    Θα δημιουργηθεί εγγραφή πληρωμής {formatPrice(pending.booking.totalPrice, pending.booking.currency)} και η κράτηση θα επιβεβαιωθεί.
+                    Θα δημιουργηθεί εγγραφή πληρωμής {formatMoney(pending.booking.totalPrice, pending.booking.currency)} και η κράτηση θα επιβεβαιωθεί.
                   </p>
                 </div>
               )}

@@ -3,8 +3,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Search, User, ChevronRight, Home, X, ArrowRight } from 'lucide-react'
+import { Search, User, ChevronRight, Home, X, ArrowRight, Menu } from 'lucide-react'
 import { NotificationPopup } from './NotificationPopup'
+
+interface HeaderProps {
+  onMobileMenuToggle?: () => void
+}
 
 const pageNames: Record<string, string> = {
   '/dashboard': 'Πίνακας Ελέγχου',
@@ -30,7 +34,7 @@ const pageNames: Record<string, string> = {
   '/help': 'Βοήθεια',
 }
 
-export function Header() {
+export function Header({ onMobileMenuToggle }: HeaderProps) {
   const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -102,9 +106,17 @@ export function Header() {
   const isHome = pathname === '/dashboard'
 
   return (
-    <header className="header h-16 flex items-center justify-between px-8">
+    <header className="header h-16 flex items-center justify-between px-4 md:px-8">
+      {/* Mobile Menu Button */}
+      <button
+        onClick={onMobileMenuToggle}
+        className="md:hidden p-2 rounded-lg hover:bg-slate-700 transition-colors text-slate-400 hover:text-slate-100"
+      >
+        <Menu className="h-6 w-6" />
+      </button>
+
       {/* Breadcrumbs */}
-      <nav className="flex items-center gap-2 text-base">
+      <nav className="hidden md:flex items-center gap-2 text-base">
         <Link 
           href="/dashboard" 
           className="flex items-center gap-1.5 text-slate-400 hover:text-blue-400 transition-colors"
@@ -119,6 +131,11 @@ export function Header() {
           </>
         )}
       </nav>
+
+      {/* Mobile Page Title */}
+      <div className="md:hidden flex-1 ml-3">
+        <span className="font-semibold text-slate-100 text-lg">{currentPage}</span>
+      </div>
 
       <div className="flex items-center gap-3">
         {/* Search Bar */}

@@ -101,6 +101,13 @@ export interface Booking {
   ownerRevenue: number | null; // Revenue after platform fees
   platformFee: number | null; // Platform fee amount
   source?: string;
+  // Third-party channel details, present when source is not DIRECT/MANUAL
+  externalId?: string | null; // Confirmation number on the channel
+  externalPlatform?: string | null; // Channel name when source is OTHER
+  commissionRate?: number | null; // Channel commission percentage
+  commissionAmount?: number | null;
+  netRevenue?: number | null; // Revenue after channel commission
+  lastSyncedAt?: string | null;
   roomId: string | null;
   roomName: string | null;
   guestName: string;

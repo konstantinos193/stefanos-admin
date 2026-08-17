@@ -151,21 +151,21 @@ export function BookingsHeader({ onBookingCreated }: BookingsHeaderProps) {
 
   return (
     <>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Κρατήσεις</h1>
-          <p className="text-gray-600 mt-1">Διαχείριση όλων των κρατήσεων και των επιδοτήσεων</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Κρατήσεις</h1>
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">Διαχείριση όλων των κρατήσεων και των επιδοτήσεων</p>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center gap-2 sm:space-x-3">
           {/* Export dropdown */}
           <div ref={exportMenuRef} className="relative">
             <button
               onClick={() => setExportMenuOpen(!exportMenuOpen)}
               disabled={exporting}
-              className="btn btn-secondary flex items-center space-x-2"
+              className="btn btn-secondary flex items-center gap-2 text-sm px-3 py-2"
             >
               <Download className="h-4 w-4" />
-              <span>{exporting ? 'Εξαγωγή...' : 'Εξαγωγή'}</span>
+              <span className="hidden sm:inline">{exporting ? 'Εξαγωγή...' : 'Εξαγωγή'}</span>
               <ChevronDown className={`h-3.5 w-3.5 transition-transform ${exportMenuOpen ? 'rotate-180' : ''}`} />
             </button>
 
@@ -191,10 +191,11 @@ export function BookingsHeader({ onBookingCreated }: BookingsHeaderProps) {
 
           <button
             onClick={() => setShowCreateDialog(true)}
-            className="btn btn-primary flex items-center space-x-2"
+            className="btn btn-primary flex items-center gap-2 text-sm px-3 py-2"
           >
             <Calendar className="h-4 w-4" />
-            <span>Νέα Κράτηση</span>
+            <span className="hidden sm:inline">Νέα Κράτηση</span>
+            <span className="sm:hidden">Νέα</span>
           </button>
         </div>
       </div>

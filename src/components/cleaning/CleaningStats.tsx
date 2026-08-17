@@ -14,33 +14,25 @@ export function CleaningStatsCards({ stats, loading }: CleaningStatsCardsProps) 
       title: 'Συνολικά Προγράμματα',
       value: stats.totalSchedules,
       icon: Home,
-      color: 'bg-blue-500',
-      bgColor: 'bg-blue-50',
-      textColor: 'text-blue-600'
+      color: 'bg-blue-500/15 text-blue-400 border border-blue-500/20'
     },
     {
       title: 'Σημερινές Εκκρεμότητες',
       value: stats.pendingToday,
       icon: Clock,
-      color: 'bg-yellow-500',
-      bgColor: 'bg-yellow-50',
-      textColor: 'text-yellow-600'
+      color: 'bg-yellow-500/15 text-yellow-400 border border-yellow-500/20'
     },
     {
       title: 'Ολοκληρωμένες (Εβδομάδα)',
       value: stats.completedThisWeek,
       icon: CheckCircle,
-      color: 'bg-green-500',
-      bgColor: 'bg-green-50',
-      textColor: 'text-green-600'
+      color: 'bg-green-500/15 text-green-400 border border-green-500/20'
     },
     {
       title: 'Εκπρόθεσμες',
       value: stats.overdue,
       icon: AlertTriangle,
-      color: 'bg-red-500',
-      bgColor: 'bg-red-50',
-      textColor: 'text-red-600'
+      color: 'bg-red-500/15 text-red-400 border border-red-500/20'
     },
     {
       title: 'Μέση Βαθμολογία Καθαριότητας',
@@ -48,17 +40,13 @@ export function CleaningStatsCards({ stats, loading }: CleaningStatsCardsProps) 
         ? `${stats.averageCleanlinessRating.toFixed(1)}/5.0` 
         : 'N/A',
       icon: Star,
-      color: 'bg-purple-500',
-      bgColor: 'bg-purple-50',
-      textColor: 'text-purple-600'
+      color: 'bg-purple-500/15 text-purple-400 border border-purple-500/20'
     },
     {
       title: 'Ακίνητα με Καθαρισμό',
       value: stats.propertiesWithCleaning,
       icon: Sparkles,
-      color: 'bg-indigo-500',
-      bgColor: 'bg-indigo-50',
-      textColor: 'text-indigo-600'
+      color: 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/20'
     }
   ]
 
@@ -69,10 +57,10 @@ export function CleaningStatsCards({ stats, loading }: CleaningStatsCardsProps) 
           <div key={i} className="card animate-pulse">
             <div className="p-6">
               <div className="flex items-center justify-between">
-                <div className="h-12 w-12 bg-gray-200 rounded-lg"></div>
-                <div className="h-6 w-16 bg-gray-200 rounded"></div>
+                <div className="h-12 w-12 bg-slate-700/50 rounded-lg"></div>
+                <div className="h-6 w-16 bg-slate-700/50 rounded"></div>
               </div>
-              <div className="mt-4 h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="mt-4 h-4 bg-slate-700/50 rounded w-3/4"></div>
             </div>
           </div>
         ))}
@@ -86,14 +74,14 @@ export function CleaningStatsCards({ stats, loading }: CleaningStatsCardsProps) 
         <div key={index} className="card hover:shadow-lg transition-shadow">
           <div className="p-6">
             <div className="flex items-center justify-between">
-              <div className={`p-3 rounded-lg ${card.bgColor}`}>
-                <card.icon className={`h-6 w-6 ${card.textColor}`} />
+              <div className={`p-3 rounded-xl ${card.color}`}>
+                <card.icon className="h-6 w-6" />
               </div>
               <div className="text-right">
-                <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+                <p className="text-2xl font-bold text-slate-100">{card.value}</p>
               </div>
             </div>
-            <p className="mt-4 text-sm font-medium text-gray-600">{card.title}</p>
+            <p className="mt-4 text-sm font-medium text-slate-400">{card.title}</p>
           </div>
         </div>
       ))}
