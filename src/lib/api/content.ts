@@ -1,83 +1,84 @@
 import { apiRequest } from './config';
 
-export interface Edition {
+export type ContentTypeValue =
+  | 'TEXT'
+  | 'HTML'
+  | 'MARKDOWN'
+  | 'JSON'
+  | 'IMAGE'
+  | 'GALLERY'
+  | 'HERO';
+
+/** Field names mirror the Content model: contentGr / contentEn, not valueGr / valueEn. */
+export interface ContentItem {
   id: string;
-  category: string;
-  titleGr: string;
-  titleEn: string;
-  descriptionGr: string | null;
-  descriptionEn: string | null;
+  page: string;
+  section: string;
+  key: string;
+  type: ContentTypeValue;
   contentGr: string | null;
   contentEn: string | null;
-  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
-  featured: boolean;
-  order: number | null;
+  active: boolean;
+  order: number;
+  metaTitleGr?: string | null;
+  metaTitleEn?: string | null;
+  metaDescriptionGr?: string | null;
+  metaDescriptionEn?: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface EditionsResponse {
+export interface ContentListResponse {
   success: boolean;
-  data: {
-    editions: Edition[];
-    pagination?: {
-      page: number;
-      limit: number;
-      total: number;
-      totalPages: number;
-    };
+  data: ContentItem[];
+  pagination?: {
+    total: number;
+    skip: number;
+    take: number;
   };
 }
 
-export interface EditionQueryParams {
-  page?: number;
-  limit?: number;
-  category?: string;
-  status?: string;
-  featured?: boolean;
+export interface ContentQueryParams {
+  page?: string;
+  section?: string;
+  type?: ContentTypeValue;
+  skip?: number;
+  take?: number;
 }
 
 export const contentApi = {
-  async getAll(params: EditionQueryParams = {}): Promise<EditionsResponse> {
-    const queryParams = new URLSearchParams();
-    if (params.page) queryParams.append('page', params.page.toString());
-    if (params.limit) queryParams.append('limit', params.limit.toString());
-    if (params.category) queryParams.append('category', params.category);
-    if (params.status) queryParams.append('status', params.status);
-    if (params.featured !== undefined) queryParams.append('featured', params.featured.toString());
+  async getAll(params: ContentQueryParams = {}): Promise<ContentListResponse> {
+    const query = new URLSearchParams();
+    if (params.page) query.append('page', params.page);
+    if (params.section) query.append('section', params.section);
+    if (params.type) query.append('type', params.type);
+    if (params.skip !== undefined) query.append('skip', String(params.skip));
+    if (params.take !== undefined) query.append('take', String(params.take));
 
-    const queryString = queryParams.toString();
-    return apiRequest<EditionsResponse>(`/editions${queryString ? `?${queryString}` : ''}`);
+    const queryString = query.toString();
+    return apiRequest<ContentListResponse>(`/content${queryString ? `?${queryString}` : ''}`);
   },
 
-  async getById(id: string): Promise<{ success: boolean; data: Edition }> {
-    return apiRequest<{ success: boolean; data: Edition }>(`/editions/${id}`);
-  },
-
-  async create(data: Partial<Edition>): Promise<{ success: boolean; data: Edition }> {
-    return apiRequest<{ success: boolean; data: Edition }>('/editions', {
+  async create(data: Partial<ContentItem>): Promise<{ success: boolean; data: ContentItem }> {
+    return apiRequest<{ success: boolean; data: ContentItem }>('/content', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   },
 
-  async update(id: string, data: Partial<Edition>): Promise<{ success: boolean; data: Edition }> {
-    return apiRequest<{ success: boolean; data: Edition }>(`/editions/${id}`, {
+  async update(
+    id: string,
+    data: Partial<ContentItem>,
+  ): Promise<{ success: boolean; data: ContentItem }> {
+    return apiRequest<{ success: boolean; data: ContentItem }>(`/content/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
   },
 
   async delete(id: string): Promise<{ success: boolean }> {
-    return apiRequest<{ success: boolean }>(`/editions/${id}`, {
+    return apiRequest<{ success: boolean }>(`/content/${id}`, {
       method: 'DELETE',
     });
   },
-
-  async publish(id: string): Promise<{ success: boolean; data: Edition }> {
-    return apiRequest<{ success: boolean; data: Edition }>(`/editions/${id}/publish`, {
-      method: 'POST',
-    });
-  },
 };
-

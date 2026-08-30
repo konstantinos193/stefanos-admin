@@ -41,7 +41,9 @@ export interface Property {
   titleEn: string;
   descriptionGr: string | null;
   descriptionEn: string | null;
-  type: 'APARTMENT' | 'HOUSE' | 'ROOM' | 'COMMERCIAL' | 'STORAGE' | 'VACATION_RENTAL' | 'LUXURY' | 'INVESTMENT';
+  // Mirrors the PropertyType enum in prisma/schema.prisma. (There is no
+  // VACATION_RENTAL member; PLOT and GARAGE were missing here.)
+  type: 'APARTMENT' | 'HOUSE' | 'ROOM' | 'COMMERCIAL' | 'STORAGE' | 'PLOT' | 'GARAGE' | 'LUXURY' | 'INVESTMENT';
   status: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE' | 'SUSPENDED';
   address: string;
   city: string;
@@ -62,6 +64,8 @@ export interface Property {
   images: string[];
   videos: string[];
   ownerId: string;
+  /** Group membership; set through the property-groups membership routes. */
+  propertyGroupId?: string | null;
   owner?: {
     id: string;
     name: string | null;

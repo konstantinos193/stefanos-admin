@@ -19,7 +19,11 @@ export interface PropertyGroup {
     titleGr: string;
     titleEn: string;
     status: string;
+    basePrice?: number;
   }>;
+  _count?: {
+    properties: number;
+  };
 }
 
 export interface PropertyGroupsResponse {
@@ -62,6 +66,21 @@ export const propertyGroupsApi = {
     return apiRequest<{ success: boolean }>(`/property-groups/${id}`, {
       method: 'DELETE',
     });
+  },
+
+  /** Membership is stored as Property.propertyGroupId, set via these two routes. */
+  async addProperty(groupId: string, propertyId: string): Promise<{ success: boolean }> {
+    return apiRequest<{ success: boolean }>(
+      `/property-groups/${groupId}/properties/${propertyId}`,
+      { method: 'POST' },
+    );
+  },
+
+  async removeProperty(groupId: string, propertyId: string): Promise<{ success: boolean }> {
+    return apiRequest<{ success: boolean }>(
+      `/property-groups/${groupId}/properties/${propertyId}`,
+      { method: 'DELETE' },
+    );
   },
 };
 

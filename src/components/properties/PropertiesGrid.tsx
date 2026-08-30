@@ -1,249 +1,215 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Edit, Trash2, Eye, MapPin, Bed, Bath, Square } from 'lucide-react'
-import { propertiesApi } from '@/lib/api/properties'
-import { Property } from '@/lib/api/types'
+import { useState } from 'react'
+import { Edit, Trash2, Eye, MapPin, Bed, Bath, Square, Users, Building2, SearchX } from 'lucide-react'
+import type { Property } from '@/lib/api/types'
+import { formatNightlyPrice, statusMeta, typeLabel } from './propertyUtils'
 
-const mockProperties = [
-  {
-    id: 1,
-    title: 'Σύγχρονο Διαμέρισμα στην Αθήνα',
-    location: 'Αθήνα, Ελλάδα',
-    type: 'Apartment',
-    price: '€1,200/μήνα',
-    bedrooms: 2,
-    bathrooms: 1,
-    area: 85,
-    status: 'Available',
-    image: 'bg-gradient-to-br from-blue-400 to-purple-500',
-  },
-  {
-    id: 2,
-    title: 'Πολυτελής Βίλα στη Μύκονο',
-    location: 'Μύκονος, Ελλάδα',
-    type: 'Villa',
-    price: '€5,000/μήνα',
-    bedrooms: 4,
-    bathrooms: 3,
-    area: 250,
-    status: 'Rented',
-    image: 'bg-gradient-to-br from-purple-400 to-pink-500',
-  },
-  {
-    id: 3,
-    title: 'Ζεστό Σπίτι στη Θεσσαλονίκη',
-    location: 'Θεσσαλονίκη, Ελλάδα',
-    type: 'House',
-    price: '€800/μήνα',
-    bedrooms: 3,
-    bathrooms: 2,
-    area: 120,
-    status: 'Available',
-    image: 'bg-gradient-to-br from-green-400 to-cyan-500',
-  },
-  {
-    id: 4,
-    title: 'Στούντιο Διαμέρισμα στην Κρήτη',
-    location: 'Κρήτη, Ελλάδα',
-    type: 'Apartment',
-    price: '€600/μήνα',
-    bedrooms: 1,
-    bathrooms: 1,
-    area: 45,
-    status: 'Available',
-    image: 'bg-gradient-to-br from-orange-400 to-red-500',
-  },
-  {
-    id: 5,
-    title: 'Επαγγελματικός Χώρος στην Αθήνα',
-    location: 'Αθήνα, Ελλάδα',
-    type: 'Commercial',
-    price: '€2,500/μήνα',
-    bedrooms: 0,
-    bathrooms: 2,
-    area: 200,
-    status: 'Available',
-    image: 'bg-gradient-to-br from-indigo-400 to-blue-500',
-  },
-  {
-    id: 6,
-    title: 'Βίλα Δίπλα στη Θάλασσα στη Σαντορίνη',
-    location: 'Σαντορίνη, Ελλάδα',
-    type: 'Villa',
-    price: '€8,000/μήνα',
-    bedrooms: 5,
-    bathrooms: 4,
-    area: 350,
-    status: 'Rented',
-    image: 'bg-gradient-to-br from-pink-400 to-purple-500',
-  },
-]
+interface PropertiesGridProps {
+  properties: Property[]
+  loading: boolean
+  busyId?: string | null
+  isFiltered?: boolean
+  onView: (property: Property) => void
+  onEdit: (property: Property) => void
+  onDelete: (property: Property) => void
+  onCreate?: () => void
+  onClearFilters?: () => void
+}
 
-export function PropertiesGrid() {
-  const [properties, setProperties] = useState<Property[]>([])
-  const [loading, setLoading] = useState(true)
+/** The <img> had no error handling, so a dead URL rendered the alt text over the gradient. */
+function PropertyImage({ property }: { property: Property }) {
+  const [failed, setFailed] = useState(false)
+  const source = property.images?.[0]
+  const showImage = Boolean(source) && !failed
 
-  useEffect(() => {
-    async function fetchProperties() {
-      try {
-        setLoading(true)
-        const response = await propertiesApi.getAll({ limit: 12 })
-        setProperties(response.data?.properties || [])
-      } catch (error) {
-        console.error('Error fetching properties:', error)
-        setProperties([])
-      } finally {
-        setLoading(false)
-      }
-    }
+  return (
+    <div className="relative h-44 rounded-xl overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-700">
+      {showImage ? (
+        <img
+          src={source}
+          alt={property.titleGr}
+          onError={() => setFailed(true)}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <div className="w-full h-full flex flex-col items-center justify-center gap-1.5 text-slate-400">
+          <Building2 className="h-7 w-7" />
+          <span className="text-xs font-medium">{typeLabel(property.type)}</span>
+        </div>
+      )}
 
-    fetchProperties()
-  }, [])
+      <span
+        className={`absolute top-3 left-3 px-2.5 py-1 text-xs font-semibold rounded-lg backdrop-blur-sm ${
+          statusMeta(property.status).badge
+        }`}
+      >
+        {statusMeta(property.status).label}
+      </span>
+    </div>
+  )
+}
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'ACTIVE':
-        return 'bg-green-100 text-green-800'
-      case 'INACTIVE':
-        return 'bg-gray-100 text-gray-800'
-      case 'MAINTENANCE':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'SUSPENDED':
-        return 'bg-red-100 text-red-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'ACTIVE':
-        return 'Ενεργό'
-      case 'INACTIVE':
-        return 'Ανενεργό'
-      case 'MAINTENANCE':
-        return 'Συντήρηση'
-      case 'SUSPENDED':
-        return 'Αναστολή'
-      default:
-        return status
-    }
-  }
-
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'APARTMENT':
-        return 'Διαμέρισμα'
-      case 'HOUSE':
-        return 'Κατοικία'
-      case 'ROOM':
-        return 'Δωμάτιο'
-      case 'COMMERCIAL':
-        return 'Επαγγελματικό'
-      case 'STORAGE':
-        return 'Αποθήκη'
-      case 'VACATION_RENTAL':
-        return 'Διακοπές'
-      case 'LUXURY':
-        return 'Πολυτελές'
-      case 'INVESTMENT':
-        return 'Επένδυση'
-      default:
-        return type
-    }
-  }
-
-  const formatPrice = (price: number, currency: string = 'EUR') => {
-    return new Intl.NumberFormat('el-GR', {
-      style: 'currency',
-      currency: currency,
-      minimumFractionDigits: 0,
-    }).format(price)
-  }
-
+export function PropertiesGrid({
+  properties,
+  loading,
+  busyId,
+  isFiltered,
+  onView,
+  onEdit,
+  onDelete,
+  onCreate,
+  onClearFilters,
+}: PropertiesGridProps) {
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="card animate-pulse">
-            <div className="h-48 bg-gray-200 rounded-lg mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+          <div
+            key={i}
+            className="rounded-2xl bg-slate-800/60 border border-slate-700 p-4 animate-pulse"
+          >
+            <div className="h-44 bg-slate-700/50 rounded-xl" />
+            <div className="mt-4 h-4 w-2/3 bg-slate-700/50 rounded" />
+            <div className="mt-2 h-3 w-1/2 bg-slate-700/40 rounded" />
+            <div className="mt-4 h-8 bg-slate-700/40 rounded" />
           </div>
         ))}
       </div>
     )
   }
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {properties.length === 0 ? (
-        <div className="col-span-full text-center py-12">
-          <p className="text-gray-500">Δεν βρέθηκαν ακίνητα</p>
+  if (properties.length === 0) {
+    return (
+      <div className="rounded-2xl bg-slate-800/60 border border-slate-700 py-16 text-center">
+        <div className="h-12 w-12 mx-auto rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center">
+          {isFiltered ? (
+            <SearchX className="h-5 w-5 text-slate-400" />
+          ) : (
+            <Building2 className="h-5 w-5 text-blue-400" />
+          )}
         </div>
-      ) : (
-        properties.map((property) => (
-          <div key={property.id} className="card hover:shadow-lg transition-shadow">
-            <div className="h-48 rounded-lg mb-4 flex items-center justify-center bg-gradient-to-br from-blue-400 to-purple-500 overflow-hidden">
-              {property.images && property.images.length > 0 ? (
-                <img
-                  src={property.images[0]}
-                  alt={property.titleGr}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-white text-2xl font-bold">{getTypeLabel(property.type).charAt(0)}</span>
-              )}
-            </div>
-            <div className="space-y-3">
-              <div>
-                <h3 className="text-lg font-bold text-gray-900">{property.titleGr}</h3>
-                <div className="flex items-center text-sm text-gray-600 mt-1">
-                  <MapPin className="h-3 w-3 mr-1" />
-                  <span>{property.city}, {property.country}</span>
-                </div>
+        <p className="mt-4 text-base font-semibold text-slate-200">
+          {isFiltered ? 'Κανένα αποτέλεσμα' : 'Δεν υπάρχουν ακίνητα'}
+        </p>
+        <p className="mt-1 text-sm text-slate-400 max-w-sm mx-auto">
+          {isFiltered
+            ? 'Δοκιμάστε διαφορετική αναζήτηση ή αφαιρέστε τα φίλτρα.'
+            : 'Προσθέστε το πρώτο σας ακίνητο για να ξεκινήσετε.'}
+        </p>
+        {isFiltered
+          ? onClearFilters && (
+              <button
+                onClick={onClearFilters}
+                className="mt-5 h-10 px-4 rounded-xl bg-slate-800 border border-slate-700 text-sm font-semibold text-slate-200 hover:bg-slate-700 transition-colors"
+              >
+                Καθαρισμός φίλτρων
+              </button>
+            )
+          : onCreate && (
+              <button
+                onClick={onCreate}
+                className="mt-5 h-10 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-colors"
+              >
+                Προσθήκη Ακινήτου
+              </button>
+            )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {properties.map((property) => {
+        const busy = busyId === property.id
+
+        return (
+          <div
+            key={property.id}
+            className={`flex flex-col rounded-2xl bg-slate-800/60 border border-slate-700 p-4 transition-colors hover:border-slate-600 ${
+              busy ? 'opacity-60' : ''
+            }`}
+          >
+            <PropertyImage property={property} />
+
+            <div className="mt-4 flex-1">
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="text-base font-bold text-slate-100 leading-snug">
+                  {property.titleGr}
+                </h3>
+                <span className="flex-shrink-0 px-2 py-0.5 rounded-lg bg-slate-700/50 border border-slate-600/50 text-xs font-semibold text-slate-300">
+                  {typeLabel(property.type)}
+                </span>
               </div>
-              <div className="flex items-center space-x-4 text-sm text-gray-600">
-                <div className="flex items-center">
-                  <Bed className="h-4 w-4 mr-1" />
-                  <span>{property.bedrooms}</span>
-                </div>
-                <div className="flex items-center">
-                  <Bath className="h-4 w-4 mr-1" />
-                  <span>{property.bathrooms}</span>
-                </div>
-                {property.area && (
-                  <div className="flex items-center">
-                    <Square className="h-4 w-4 mr-1" />
-                    <span>{property.area}m²</span>
-                  </div>
-                )}
-              </div>
-              <div className="flex items-center justify-between pt-2 border-t border-gray-200">
-                <div>
-                  <p className="text-lg font-bold text-gray-900">{formatPrice(property.basePrice, property.currency)}/μήνα</p>
-                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(property.status)}`}>
-                    {getStatusLabel(property.status)}
+
+              <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-400">
+                <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+                <span className="truncate">
+                  {property.city}
+                  {property.country ? `, ${property.country}` : ''}
+                </span>
+              </p>
+
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-slate-400">
+                <span className="flex items-center gap-1.5">
+                  <Users className="h-4 w-4" />
+                  {property.maxGuests}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Bed className="h-4 w-4" />
+                  {property.bedrooms}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Bath className="h-4 w-4" />
+                  {property.bathrooms}
+                </span>
+                {property.area ? (
+                  <span className="flex items-center gap-1.5">
+                    <Square className="h-4 w-4" />
+                    {property.area}m²
                   </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                    <Eye className="h-4 w-4" />
-                  </button>
-                  <button className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors">
-                    <Edit className="h-4 w-4" />
-                  </button>
-                  <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-slate-700/60 flex items-center justify-between gap-2">
+              <p className="text-base font-bold text-slate-50">
+                {formatNightlyPrice(property.basePrice, property.currency)}
+              </p>
+
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => onView(property)}
+                  disabled={busy}
+                  title="Προβολή"
+                  aria-label="Προβολή"
+                  className="h-9 w-9 inline-flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-700 hover:text-slate-100 transition-colors disabled:opacity-50"
+                >
+                  <Eye className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => onEdit(property)}
+                  disabled={busy}
+                  title="Επεξεργασία"
+                  aria-label="Επεξεργασία"
+                  className="h-9 w-9 inline-flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-700 hover:text-slate-100 transition-colors disabled:opacity-50"
+                >
+                  <Edit className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => onDelete(property)}
+                  disabled={busy}
+                  title="Διαγραφή"
+                  aria-label="Διαγραφή"
+                  className="h-9 w-9 inline-flex items-center justify-center rounded-lg text-slate-400 hover:bg-red-500/15 hover:text-red-300 transition-colors disabled:opacity-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
             </div>
           </div>
-        ))
-      )}
+        )
+      })}
     </div>
   )
 }
-
