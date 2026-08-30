@@ -103,7 +103,7 @@ export function formatCurrencyTick(value: number): string {
 }
 
 /** True when every numeric field across the series is zero or missing. */
-export function isAllZero<T extends Record<string, unknown>>(rows: T[], keys: (keyof T)[]) {
+export function isAllZero<T extends object>(rows: T[], keys: (keyof T)[]) {
   if (rows.length === 0) return true
-  return rows.every((row) => keys.every((key) => !Number(row[key])))
+  return rows.every((row) => keys.every((key) => !Number(row[key] ?? 0)))
 }

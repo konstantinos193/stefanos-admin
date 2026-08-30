@@ -1,8 +1,20 @@
 'use client'
 
-import type { TooltipProps } from 'recharts'
+interface TooltipEntry {
+  dataKey?: string | number
+  name?: string | number
+  value?: number | string
+  color?: string
+}
 
-interface ChartTooltipProps extends TooltipProps<number, string> {
+/**
+ * Props recharts injects into a `content` element. Declared locally rather than
+ * extending TooltipProps, whose formatter signatures conflict with these.
+ */
+interface ChartTooltipProps {
+  active?: boolean
+  payload?: TooltipEntry[]
+  label?: string | number
   labelFormatter?: (label: string) => string
   valueFormatter?: (value: number, dataKey: string) => string
   /** Greek display name per dataKey, so the tooltip never shows a raw field name. */

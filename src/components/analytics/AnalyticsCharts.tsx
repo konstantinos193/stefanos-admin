@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { BarChart3, PieChart, TrendingUp, Activity, Loader2 } from 'lucide-react'
+import { BarChart3, PieChart, TrendingUp, Activity, Inbox } from 'lucide-react'
 import {
   BarChart,
   Bar,
@@ -9,6 +8,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  Legend,
   ResponsiveContainer,
   PieChart as RechartsPieChart,
   Pie,
@@ -18,233 +18,337 @@ import {
   Area,
   AreaChart,
 } from 'recharts'
-import { analyticsApi, type AnalyticsPeriod, type RevenueChartData, type BookingTrendData, type UserDistributionData, type ActivityData } from '@/lib/api/analytics'
+import type {
+  AnalyticsPeriod,
+  RevenueChartData,
+  BookingTrendData,
+  UserDistributionData,
+  ActivityData,
+} from '@/lib/api/analytics'
+import { ChartTooltip } from './ChartTooltip'
+import {
+  SERIES,
+  CHART_CHROME,
+  formatBucketLabel,
+  formatBucketTooltipLabel,
+  formatCurrency,
+  formatCurrencyTick,
+  isAllZero,
+} from './analyticsTheme'
 
-const defaultPeriod: AnalyticsPeriod = {
-  period: 'MONTHLY',
-  startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-  endDate: new Date().toISOString().split('T')[0],
+interface AnalyticsChartsProps {
+  period: AnalyticsPeriod
+  revenueData: RevenueChartData[]
+  bookingData: BookingTrendData[]
+  userDistribution: UserDistributionData[]
+  activityData: ActivityData[]
+  loading: boolean
+  refreshing?: boolean
 }
 
-const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899']
+const axisTick = { fontSize: 12, fill: CHART_CHROME.tick }
 
-export function AnalyticsCharts() {
-  const [revenueData, setRevenueData] = useState<RevenueChartData[]>([])
-  const [bookingData, setBookingData] = useState<BookingTrendData[]>([])
-  const [userDistribution, setUserDistribution] = useState<UserDistributionData[]>([])
-  const [activityData, setActivityData] = useState<ActivityData[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+function ChartCard({
+  title,
+  subtitle,
+  icon: Icon,
+  iconClass,
+  children,
+}: {
+  title: string
+  subtitle: string
+  icon: typeof BarChart3
+  iconClass: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="rounded-2xl bg-slate-800/60 border border-slate-700 p-5">
+      <div className="flex items-start justify-between mb-5">
+        <div>
+          <h2 className="text-base font-bold text-slate-100">{title}</h2>
+          <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>
+        </div>
+        <Icon className={`h-4 w-4 flex-shrink-0 ${iconClass}`} />
+      </div>
+      {/* Height covers plot + x-axis band + legend so nothing gets clipped. */}
+      <div className="h-72">{children}</div>
+    </div>
+  )
+}
 
-  useEffect(() => {
-    const fetchChartData = async () => {
-      try {
-        setLoading(true)
-        const [revenue, bookings, users, activity] = await Promise.all([
-          analyticsApi.getRevenueChartData(defaultPeriod),
-          analyticsApi.getBookingTrendsData(defaultPeriod),
-          analyticsApi.getUserDistributionData(),
-          analyticsApi.getActivityData(defaultPeriod),
-        ])
+function NoData({ message }: { message: string }) {
+  return (
+    <div className="h-full flex flex-col items-center justify-center text-center">
+      <Inbox className="h-8 w-8 text-slate-600" />
+      <p className="mt-3 text-sm text-slate-400">{message}</p>
+      <p className="mt-1 text-xs text-slate-500">Δοκιμάστε μεγαλύτερο χρονικό διάστημα.</p>
+    </div>
+  )
+}
 
-        setRevenueData(revenue)
-        setBookingData(bookings)
-        setUserDistribution(users)
-        setActivityData(activity)
-      } catch (err) {
-        console.error('Failed to fetch chart data:', err)
-        setError('Αποτυχία φόρτωσης γραφημάτων')
-      } finally {
-        setLoading(false)
-      }
-    }
+const legendStyle = { fontSize: 12, color: CHART_CHROME.tick, paddingTop: 8 }
 
-    fetchChartData()
-  }, [])
+function legendLabel(value: string) {
+  return <span className="text-xs text-slate-300">{value}</span>
+}
 
+export function AnalyticsCharts({
+  period,
+  revenueData,
+  bookingData,
+  userDistribution,
+  activityData,
+  loading,
+  refreshing,
+}: AnalyticsChartsProps) {
   if (loading) {
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="card">
-            <div className="flex items-center justify-center h-80">
-              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-            </div>
+          <div
+            key={i}
+            className="rounded-2xl bg-slate-800/60 border border-slate-700 p-5 animate-pulse"
+          >
+            <div className="h-4 w-40 bg-slate-700/60 rounded" />
+            <div className="mt-2 h-3 w-56 bg-slate-700/40 rounded" />
+            <div className="mt-5 h-72 bg-slate-700/30 rounded-xl" />
           </div>
         ))}
       </div>
     )
   }
 
-  if (error) {
-    return (
-      <div className="card">
-        <div className="text-center py-8">
-          <p className="text-red-600">{error}</p>
-        </div>
-      </div>
-    )
-  }
+  const bucketLabel = (value: string) => formatBucketLabel(value, period.period)
+  const tooltipLabel = (value: string) => formatBucketTooltipLabel(value, period.period)
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div className="card border border-gray-100">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">Τάσεις Εσόδων</h2>
-            <p className="text-sm text-gray-600 mt-1">Μηνιαία έσοδα με την πάροδο του χρόνου</p>
-          </div>
-          <BarChart3 className="h-5 w-5 text-blue-500" />
-        </div>
-        <div className="h-80">
+    // Hold the previous render at reduced opacity while refetching — no skeleton flash.
+    <div
+      className={`grid grid-cols-1 lg:grid-cols-2 gap-6 transition-opacity duration-200 ${
+        refreshing ? 'opacity-60' : 'opacity-100'
+      }`}
+    >
+      <ChartCard
+        title="Τάσεις Εσόδων"
+        subtitle="Έσοδα και καθαρό κέρδος ανά περίοδο"
+        icon={BarChart3}
+        iconClass="text-blue-400"
+      >
+        {isAllZero(revenueData, ['revenue', 'profit']) ? (
+          <NoData message="Δεν υπάρχουν έσοδα σε αυτό το διάστημα" />
+        ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={revenueData}>
+            <AreaChart data={revenueData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
               <defs>
-                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={SERIES.slot1} stopOpacity={0.45} />
+                  <stop offset="95%" stopColor={SERIES.slot1} stopOpacity={0} />
                 </linearGradient>
-                <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                <linearGradient id="fillProfit" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={SERIES.slot3} stopOpacity={0.45} />
+                  <stop offset="95%" stopColor={SERIES.slot3} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis 
-                dataKey="date" 
-                tick={{ fontSize: 12 }}
-                tickFormatter={(value) => new Date(value).toLocaleDateString('el-GR', { month: 'short' })}
+              <CartesianGrid stroke={CHART_CHROME.grid} vertical={false} />
+              <XAxis
+                dataKey="date"
+                tick={axisTick}
+                tickLine={false}
+                axisLine={{ stroke: CHART_CHROME.axis }}
+                tickFormatter={bucketLabel}
+                minTickGap={24}
               />
-              <YAxis 
-                tick={{ fontSize: 12 }}
-                tickFormatter={(value) => `€${(value / 1000).toFixed(0)}k`}
+              <YAxis
+                tick={axisTick}
+                tickLine={false}
+                axisLine={false}
+                width={60}
+                tickFormatter={formatCurrencyTick}
               />
-              <Tooltip 
-                formatter={(value: any) => value ? [`€${Number(value).toLocaleString('el-GR')}`, ''] : ['', '']}
-                labelFormatter={(label: any) => new Date(label).toLocaleDateString('el-GR')}
+              <Tooltip
+                cursor={{ stroke: CHART_CHROME.cursorLine, strokeWidth: 1 }}
+                content={
+                  <ChartTooltip
+                    labelFormatter={tooltipLabel}
+                    valueFormatter={(value) => formatCurrency(value)}
+                    seriesNames={{ revenue: 'Έσοδα', profit: 'Καθαρό κέρδος' }}
+                  />
+                }
               />
-              <Area 
-                type="monotone" 
-                dataKey="revenue" 
-                stroke="#3B82F6" 
-                fillOpacity={1} 
-                fill="url(#colorRevenue)" 
+              <Legend wrapperStyle={legendStyle} formatter={legendLabel} iconType="circle" />
+              <Area
+                type="monotone"
+                dataKey="revenue"
+                name="Έσοδα"
+                stroke={SERIES.slot1}
+                fill="url(#fillRevenue)"
                 strokeWidth={2}
               />
-              <Area 
-                type="monotone" 
-                dataKey="profit" 
-                stroke="#10B981" 
-                fillOpacity={1} 
-                fill="url(#colorProfit)" 
+              <Area
+                type="monotone"
+                dataKey="profit"
+                name="Καθαρό κέρδος"
+                stroke={SERIES.slot3}
+                fill="url(#fillProfit)"
                 strokeWidth={2}
               />
             </AreaChart>
           </ResponsiveContainer>
-        </div>
-      </div>
+        )}
+      </ChartCard>
 
-      <div className="card border border-gray-100">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">Κατανομή Χρηστών</h2>
-            <p className="text-sm text-gray-600 mt-1">Χρήστες ανά κατηγορία</p>
-          </div>
-          <PieChart className="h-5 w-5 text-green-500" />
-        </div>
-        <div className="h-80">
+      <ChartCard
+        title="Κατανομή Χρηστών"
+        subtitle="Χρήστες ανά κατηγορία"
+        icon={PieChart}
+        iconClass="text-green-400"
+      >
+        {userDistribution.length === 0 ? (
+          <NoData message="Δεν υπάρχουν χρήστες" />
+        ) : (
           <ResponsiveContainer width="100%" height="100%">
             <RechartsPieChart>
               <Pie
                 data={userDistribution}
                 cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={(data: any) => `${data.category}: ${data.percentage}%`}
-                outerRadius={80}
-                fill="#8884d8"
+                cy="45%"
+                innerRadius={48}
+                outerRadius={84}
+                paddingAngle={2}
                 dataKey="count"
+                nameKey="category"
+                stroke="#1e293b"
+                strokeWidth={2}
               >
                 {userDistribution.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell
+                    key={entry.category}
+                    fill={[SERIES.slot1, SERIES.slot2, SERIES.slot3][index % 3]}
+                  />
                 ))}
               </Pie>
-              <Tooltip formatter={(value: any) => value ? [Number(value).toLocaleString('el-GR'), 'Χρήστες'] : ['', 'Χρήστες']} />
+              <Tooltip
+                content={
+                  <ChartTooltip
+                    valueFormatter={(value) => `${value.toLocaleString('el-GR')} χρήστες`}
+                  />
+                }
+              />
+              <Legend wrapperStyle={legendStyle} formatter={legendLabel} iconType="circle" />
             </RechartsPieChart>
           </ResponsiveContainer>
-        </div>
-      </div>
+        )}
+      </ChartCard>
 
-      <div className="card border border-gray-100">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">Τάσεις Κρατήσεων</h2>
-            <p className="text-sm text-gray-600 mt-1">Μοτίβα κρατήσεων με την πάροδο του χρόνου</p>
-          </div>
-          <TrendingUp className="h-5 w-5 text-orange-500" />
-        </div>
-        <div className="h-80">
+      <ChartCard
+        title="Τάσεις Κρατήσεων"
+        subtitle="Κρατήσεις και ακυρώσεις ανά περίοδο"
+        icon={TrendingUp}
+        iconClass="text-orange-400"
+      >
+        {isAllZero(bookingData, ['bookings', 'cancelled']) ? (
+          <NoData message="Δεν υπάρχουν κρατήσεις σε αυτό το διάστημα" />
+        ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={bookingData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis 
-                dataKey="date" 
-                tick={{ fontSize: 12 }}
-                tickFormatter={(value) => new Date(value).toLocaleDateString('el-GR', { month: 'short' })}
+            <LineChart data={bookingData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+              <CartesianGrid stroke={CHART_CHROME.grid} vertical={false} />
+              <XAxis
+                dataKey="date"
+                tick={axisTick}
+                tickLine={false}
+                axisLine={{ stroke: CHART_CHROME.axis }}
+                tickFormatter={bucketLabel}
+                minTickGap={24}
               />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip 
-                labelFormatter={(label: any) => new Date(label).toLocaleDateString('el-GR')}
+              <YAxis
+                tick={axisTick}
+                tickLine={false}
+                axisLine={false}
+                width={40}
+                allowDecimals={false}
               />
-              <Line 
-                type="monotone" 
-                dataKey="bookings" 
-                stroke="#F59E0B" 
+              <Tooltip
+                cursor={{ stroke: CHART_CHROME.cursorLine, strokeWidth: 1 }}
+                content={
+                  <ChartTooltip
+                    labelFormatter={tooltipLabel}
+                    seriesNames={{ bookings: 'Κρατήσεις', cancelled: 'Ακυρώσεις' }}
+                  />
+                }
+              />
+              <Legend wrapperStyle={legendStyle} formatter={legendLabel} iconType="circle" />
+              <Line
+                type="monotone"
+                dataKey="bookings"
+                name="Κρατήσεις"
+                stroke={SERIES.slot1}
                 strokeWidth={2}
-                dot={{ fill: '#F59E0B', r: 4 }}
-                activeDot={{ r: 6 }}
+                dot={{ fill: SERIES.slot1, r: 4, strokeWidth: 0 }}
+                activeDot={{ r: 6, stroke: '#1e293b', strokeWidth: 2 }}
               />
-              <Line 
-                type="monotone" 
-                dataKey="cancelled" 
-                stroke="#EF4444" 
+              <Line
+                type="monotone"
+                dataKey="cancelled"
+                name="Ακυρώσεις"
+                stroke={SERIES.slot2}
                 strokeWidth={2}
-                dot={{ fill: '#EF4444', r: 4 }}
-                activeDot={{ r: 6 }}
+                dot={{ fill: SERIES.slot2, r: 4, strokeWidth: 0 }}
+                activeDot={{ r: 6, stroke: '#1e293b', strokeWidth: 2 }}
               />
             </LineChart>
           </ResponsiveContainer>
-        </div>
-      </div>
+        )}
+      </ChartCard>
 
-      <div className="card border border-gray-100">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">Επισκόπηση Δραστηριότητας</h2>
-            <p className="text-sm text-gray-600 mt-1">Μετρικές δραστηριότητας συστήματος</p>
-          </div>
-          <Activity className="h-5 w-5 text-pink-500" />
-        </div>
-        <div className="h-80">
+      <ChartCard
+        title="Επισκόπηση Δραστηριότητας"
+        subtitle="Νέοι χρήστες και κρατήσεις ανά περίοδο"
+        icon={Activity}
+        iconClass="text-cyan-400"
+      >
+        {isAllZero(activityData, ['users', 'bookings']) ? (
+          <NoData message="Δεν υπάρχει δραστηριότητα σε αυτό το διάστημα" />
+        ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={activityData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis 
-                dataKey="time" 
-                tick={{ fontSize: 12 }}
-                tickFormatter={(value) => new Date(value).toLocaleDateString('el-GR', { month: 'short' })}
+            <BarChart data={activityData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} barGap={2}>
+              <CartesianGrid stroke={CHART_CHROME.grid} vertical={false} />
+              <XAxis
+                dataKey="time"
+                tick={axisTick}
+                tickLine={false}
+                axisLine={{ stroke: CHART_CHROME.axis }}
+                tickFormatter={bucketLabel}
+                minTickGap={24}
               />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip 
-                labelFormatter={(label: any) => new Date(label).toLocaleDateString('el-GR')}
+              <YAxis
+                tick={axisTick}
+                tickLine={false}
+                axisLine={false}
+                width={40}
+                allowDecimals={false}
               />
-              <Bar dataKey="users" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="bookings" fill="#EC4899" radius={[4, 4, 0, 0]} />
+              {/* The default cursor is a light grey block that covers the card on dark. */}
+              <Tooltip
+                cursor={{ fill: CHART_CHROME.cursorFill }}
+                content={
+                  <ChartTooltip
+                    labelFormatter={tooltipLabel}
+                    seriesNames={{ users: 'Νέοι χρήστες', bookings: 'Κρατήσεις' }}
+                  />
+                }
+              />
+              <Legend wrapperStyle={legendStyle} formatter={legendLabel} iconType="circle" />
+              <Bar dataKey="users" name="Νέοι χρήστες" fill={SERIES.slot1} radius={[4, 4, 0, 0]} />
+              <Bar
+                dataKey="bookings"
+                name="Κρατήσεις"
+                fill={SERIES.slot2}
+                radius={[4, 4, 0, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
-        </div>
-      </div>
+        )}
+      </ChartCard>
     </div>
   )
 }
-

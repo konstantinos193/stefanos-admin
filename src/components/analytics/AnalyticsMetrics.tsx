@@ -1,128 +1,112 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { TrendingUp, TrendingDown, Eye, Users, DollarSign, Calendar, Loader2 } from 'lucide-react'
-import { analyticsApi, type AnalyticsMetrics, type AnalyticsPeriod } from '@/lib/api/analytics'
+import { TrendingUp, TrendingDown, Minus, Users, DollarSign, Calendar, Receipt } from 'lucide-react'
+import type { AnalyticsMetrics as AnalyticsMetricsData } from '@/lib/api/analytics'
+import { formatCurrency } from './analyticsTheme'
 
-const defaultPeriod: AnalyticsPeriod = {
-  period: 'MONTHLY',
-  startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-  endDate: new Date().toISOString().split('T')[0],
+interface AnalyticsMetricsProps {
+  metrics: AnalyticsMetricsData | null
+  loading: boolean
+  refreshing?: boolean
 }
 
-const metricConfig = [
-  {
-    key: 'pageViews' as keyof AnalyticsMetrics,
-    title: 'Προβολές Σελίδας',
-    icon: Eye,
-    color: 'bg-blue-500',
-    bgColor: 'bg-blue-50',
-    textColor: 'text-blue-600',
-  },
-  {
-    key: 'activeUsers' as keyof AnalyticsMetrics,
-    title: 'Ενεργοί Χρήστες',
-    icon: Users,
-    color: 'bg-green-500',
-    bgColor: 'bg-green-50',
-    textColor: 'text-green-600',
-  },
-  {
-    key: 'revenue' as keyof AnalyticsMetrics,
-    title: 'Έσοδα',
-    icon: DollarSign,
-    color: 'bg-purple-500',
-    bgColor: 'bg-purple-50',
-    textColor: 'text-purple-600',
-  },
-  {
-    key: 'bookings' as keyof AnalyticsMetrics,
-    title: 'Κρατήσεις',
-    icon: Calendar,
-    color: 'bg-orange-500',
-    bgColor: 'bg-orange-50',
-    textColor: 'text-orange-600',
-  },
-]
+function DeltaBadge({ change }: { change: number | null }) {
+  if (change === null) {
+    return <span className="text-xs text-slate-500">—</span>
+  }
 
-export function AnalyticsMetrics() {
-  const [metrics, setMetrics] = useState<AnalyticsMetrics | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const flat = change === 0
+  const up = change > 0
+  const Icon = flat ? Minus : up ? TrendingUp : TrendingDown
+  const tone = flat ? 'text-slate-400' : up ? 'text-green-400' : 'text-red-400'
 
-  useEffect(() => {
-    const fetchMetrics = async () => {
-      try {
-        setLoading(true)
-        const data = await analyticsApi.getDashboardMetrics(defaultPeriod)
-        setMetrics(data)
-      } catch (err) {
-        console.error('Failed to fetch analytics metrics:', err)
-        setError('Αποτυχία φόρτωσης δεδομένων')
-      } finally {
-        setLoading(false)
-      }
-    }
+  return (
+    <span className={`inline-flex items-center gap-1 text-xs font-semibold ${tone}`}>
+      <Icon className="h-3.5 w-3.5" />
+      {up ? '+' : ''}
+      {change}%
+      <span className="font-normal text-slate-500">vs προηγ. περίοδο</span>
+    </span>
+  )
+}
 
-    fetchMetrics()
-  }, [])
-
+export function AnalyticsMetrics({ metrics, loading, refreshing }: AnalyticsMetricsProps) {
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {metricConfig.map((config) => (
-          <div key={config.key} className="card">
-            <div className="flex items-center justify-center h-32">
-              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-            </div>
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className="h-[116px] rounded-2xl bg-slate-800/50 border border-slate-700/60 animate-pulse"
+          />
         ))}
       </div>
     )
   }
 
-  if (error || !metrics) {
-    return (
-      <div className="card">
-        <div className="text-center py-8">
-          <p className="text-red-600">{error || 'Δεν βρέθηκαν δεδομένα'}</p>
-        </div>
-      </div>
-    )
-  }
+  if (!metrics) return null
+
+  const averageBookingValue =
+    metrics.bookings > 0 ? metrics.revenue / metrics.bookings : 0
+
+  const cards = [
+    {
+      key: 'revenue',
+      title: 'Έσοδα',
+      value: formatCurrency(metrics.revenue),
+      change: metrics.revenueChange,
+      icon: DollarSign,
+      tone: 'bg-blue-500/15 text-blue-300 border-blue-500/25',
+    },
+    {
+      key: 'bookings',
+      title: 'Κρατήσεις',
+      value: metrics.bookings.toLocaleString('el-GR'),
+      change: metrics.bookingsChange,
+      icon: Calendar,
+      tone: 'bg-orange-500/15 text-orange-300 border-orange-500/25',
+    },
+    {
+      key: 'activeUsers',
+      title: 'Ενεργοί Χρήστες',
+      value: metrics.activeUsers.toLocaleString('el-GR'),
+      change: metrics.activeUsersChange,
+      icon: Users,
+      tone: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25',
+    },
+    {
+      // Derived from the two figures above — no previous-period value to compare.
+      key: 'averageBookingValue',
+      title: 'Μέση Αξία Κράτησης',
+      value: averageBookingValue > 0 ? formatCurrency(averageBookingValue) : '—',
+      change: null,
+      icon: Receipt,
+      tone: 'bg-violet-500/15 text-violet-300 border-violet-500/25',
+    },
+  ]
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {metricConfig.map((config) => {
-        const Icon = config.icon
-        const value = metrics[config.key]
-        const changeKey = `${config.key}Change` as keyof AnalyticsMetrics
-        const change = metrics[changeKey] as number
-        const trend = change >= 0 ? 'up' : 'down'
-        const TrendIcon = trend === 'up' ? TrendingUp : TrendingDown
-        
+    <div
+      className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 transition-opacity duration-200 ${
+        refreshing ? 'opacity-60' : 'opacity-100'
+      }`}
+    >
+      {cards.map((card) => {
+        const Icon = card.icon
         return (
-          <div key={config.key} className="card hover:shadow-lg transition-all duration-200 border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600">{config.title}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">
-                  {config.key === 'revenue' 
-                    ? `€${value.toLocaleString('el-GR')}`
-                    : value.toLocaleString('el-GR')
-                  }
-                </p>
-                <div className={`flex items-center space-x-1 mt-2 ${trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-                  <TrendIcon className="h-4 w-4" />
-                  <span className="text-sm font-medium">
-                    {trend === 'up' ? '+' : ''}{change}%
-                  </span>
-                  <span className="text-sm text-gray-500">vs προηγ. περίοδο</span>
-                </div>
+          <div
+            key={card.key}
+            className="rounded-2xl bg-slate-800/60 border border-slate-700 px-5 py-4"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <p className="text-sm font-medium text-slate-400">{card.title}</p>
+              <div className={`p-2 rounded-xl border ${card.tone}`}>
+                <Icon className="h-4 w-4" />
               </div>
-              <div className={`${config.bgColor} p-3 rounded-lg`}>
-                <Icon className={`h-6 w-6 ${config.textColor}`} />
-              </div>
+            </div>
+            <p className="mt-2 text-2xl font-bold text-slate-50">{card.value}</p>
+            <div className="mt-2">
+              <DeltaBadge change={card.change} />
             </div>
           </div>
         )
@@ -130,4 +114,3 @@ export function AnalyticsMetrics() {
     </div>
   )
 }
-
