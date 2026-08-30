@@ -1,217 +1,380 @@
 'use client'
 
-import { Calendar, Edit, Trash2, MoreHorizontal, Clock, AlertCircle, CheckCircle } from 'lucide-react'
+import { Edit, Trash2, Sparkles, Loader2, StickyNote, User, CalendarOff } from 'lucide-react'
 import { CleaningSchedule } from '@/lib/api/types'
+import {
+  STATUS_META,
+  getFrequencyMeta,
+  getStatus,
+  formatDate,
+  formatRelativeDays,
+} from './cleaningUtils'
 
 interface CleaningTableProps {
   schedules: CleaningSchedule[]
   loading: boolean
+  busyId?: string | null
+  isFiltered?: boolean
   onEdit: (schedule: CleaningSchedule) => void
-  onDelete: (schedule: CleaningSchedule) => Promise<void>
-  onMarkCleaned: (schedule: CleaningSchedule) => Promise<void>
+  onDelete: (schedule: CleaningSchedule) => void
+  onMarkCleaned: (schedule: CleaningSchedule) => void
+  onCreate?: () => void
+  onClearFilters?: () => void
 }
 
-export function CleaningTable({ schedules, loading, onEdit, onDelete, onMarkCleaned }: CleaningTableProps) {
-  const getFrequencyColor = (frequency: string) => {
-    switch (frequency) {
-      case 'DAILY':
-        return 'bg-blue-500/15 text-blue-400 border border-blue-500/20'
-      case 'WEEKLY':
-        return 'bg-green-500/15 text-green-400 border border-green-500/20'
-      case 'MONTHLY':
-        return 'bg-purple-500/15 text-purple-400 border border-purple-500/20'
-      case 'BIWEEKLY':
-        return 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/20'
-      case 'AFTER_EACH_BOOKING':
-        return 'bg-orange-500/15 text-orange-400 border border-orange-500/20'
-      default:
-        return 'bg-slate-500/15 text-slate-400 border border-slate-500/20'
-    }
-  }
+function StatusBadge({ schedule }: { schedule: CleaningSchedule }) {
+  const status = getStatus(schedule)
+  const meta = STATUS_META[status]
 
-  const getFrequencyLabel = (frequency: string) => {
-    switch (frequency) {
-      case 'DAILY': return 'Ημερήσια'
-      case 'WEEKLY': return 'Εβδομαδιαία'
-      case 'BIWEEKLY': return 'Δύφωνη'
-      case 'MONTHLY': return 'Μηνιαία'
-      case 'AFTER_EACH_BOOKING': return 'Μετά από κάθε κράτηση'
-      default: return frequency
-    }
-  }
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg whitespace-nowrap ${meta.badge}`}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
+      {status === 'OVERDUE' && schedule.nextCleaning
+        ? `Εκπρόθεσμο ${formatRelativeDays(schedule.nextCleaning).replace('πριν ', '')}`
+        : meta.label}
+    </span>
+  )
+}
 
-  function formatDate(d: string) {
-    return new Date(d).toLocaleDateString('el-GR', { day: '2-digit', month: 'short', year: 'numeric' })
-  }
+function FrequencyBadge({ frequency }: { frequency: string }) {
+  const meta = getFrequencyMeta(frequency)
+  return (
+    <span
+      title={meta.hint}
+      className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-lg whitespace-nowrap ${meta.color}`}
+    >
+      {meta.label}
+    </span>
+  )
+}
 
+function EmptyState({
+  isFiltered,
+  onCreate,
+  onClearFilters,
+}: Pick<CleaningTableProps, 'isFiltered' | 'onCreate' | 'onClearFilters'>) {
+  return (
+    <div className="flex flex-col items-center text-center px-6 py-16">
+      <div className="h-12 w-12 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center">
+        {isFiltered ? (
+          <CalendarOff className="h-5 w-5 text-slate-400" />
+        ) : (
+          <Sparkles className="h-5 w-5 text-blue-400" />
+        )}
+      </div>
+      <p className="mt-4 text-base font-semibold text-slate-200">
+        {isFiltered ? 'Κανένα αποτέλεσμα' : 'Δεν υπάρχουν προγράμματα καθαρισμού'}
+      </p>
+      <p className="mt-1 text-sm text-slate-400 max-w-sm">
+        {isFiltered
+          ? 'Δοκιμάστε διαφορετική αναζήτηση ή αφαιρέστε τα φίλτρα.'
+          : 'Δημιουργήστε ένα πρόγραμμα για να παρακολουθείτε πότε πρέπει να καθαριστεί κάθε ακίνητο.'}
+      </p>
+      {isFiltered ? (
+        onClearFilters && (
+          <button
+            onClick={onClearFilters}
+            className="mt-5 h-10 px-4 rounded-xl bg-slate-800 border border-slate-700 text-sm font-semibold text-slate-200 hover:bg-slate-700 transition-colors"
+          >
+            Καθαρισμός φίλτρων
+          </button>
+        )
+      ) : (
+        onCreate && (
+          <button
+            onClick={onCreate}
+            className="mt-5 h-10 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-colors"
+          >
+            Νέο Πρόγραμμα
+          </button>
+        )
+      )}
+    </div>
+  )
+}
+
+export function CleaningTable({
+  schedules,
+  loading,
+  busyId,
+  isFiltered,
+  onEdit,
+  onDelete,
+  onMarkCleaned,
+  onCreate,
+  onClearFilters,
+}: CleaningTableProps) {
   if (loading) {
     return (
-      <div className="card p-0 overflow-hidden">
-        <div className="space-y-3 p-2">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="animate-pulse h-16 bg-slate-700/50 rounded-xl" />
-          ))}
-        </div>
+      <div className="rounded-2xl bg-slate-800/60 border border-slate-700 p-3 space-y-3">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="animate-pulse h-16 bg-slate-700/40 rounded-xl" />
+        ))}
+      </div>
+    )
+  }
+
+  if (schedules.length === 0) {
+    return (
+      <div className="rounded-2xl bg-slate-800/60 border border-slate-700">
+        <EmptyState isFiltered={isFiltered} onCreate={onCreate} onClearFilters={onClearFilters} />
       </div>
     )
   }
 
   return (
-    <div className="card p-0 overflow-hidden">
-      {/* Mobile Card Layout */}
-      <div className="md:hidden space-y-3 p-4">
-        {schedules.length === 0 ? (
-          <div className="text-center py-16 text-slate-400 text-base">
-            Δεν βρέθηκαν προγράμματα καθαρισμού
-          </div>
-        ) : (
-          schedules.map((schedule) => (
+    <div className="rounded-2xl bg-slate-800/60 border border-slate-700 overflow-hidden">
+      {/* Mobile */}
+      <div className="md:hidden divide-y divide-slate-700/60">
+        {schedules.map((schedule) => {
+          const status = getStatus(schedule)
+          const busy = busyId === schedule.id
+
+          return (
             <div
               key={schedule.id}
-              className="bg-slate-800/40 rounded-xl p-4 space-y-3 border border-slate-700/50"
+              className={`p-4 border-l-4 ${STATUS_META[status].accent} ${busy ? 'opacity-60' : ''}`}
             >
               <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
+                <div className="min-w-0">
                   <p className="text-base font-semibold text-slate-100 truncate">
-                    {schedule.property?.titleGr || 'N/A'}
+                    {schedule.property?.titleGr || 'Άγνωστο ακίνητο'}
                   </p>
-                  {schedule.property?.address && (
-                    <p className="text-sm text-slate-400 mt-1 truncate">
-                      {schedule.property.address}
+                  {schedule.property?.city && (
+                    <p className="text-xs text-slate-400 mt-0.5 truncate">
+                      {schedule.property.city}
+                      {schedule.property.address ? ` · ${schedule.property.address}` : ''}
                     </p>
                   )}
                 </div>
-                <span className={`inline-flex items-center gap-1.5 px-2 py-1 text-xs font-semibold rounded-lg ${getFrequencyColor(schedule.frequency)} flex-shrink-0`}>
-                  {getFrequencyLabel(schedule.frequency)}
-                </span>
+                <StatusBadge schedule={schedule} />
               </div>
-              
-              <div className="grid grid-cols-2 gap-3 text-sm">
+
+              <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
                 <div>
-                  <p className="text-slate-400 text-xs mb-1">Υπεύθυνος</p>
-                  <p className="text-slate-200">{schedule.assignedCleaner || '-'}</p>
-                </div>
-                <div>
-                  <p className="text-slate-400 text-xs mb-1">Τελευταίος Καθαρισμός</p>
-                  <p className="text-slate-200">{schedule.lastCleaned ? formatDate(schedule.lastCleaned) : '-'}</p>
-                </div>
-                <div>
-                  <p className="text-slate-400 text-xs mb-1">Επόμενος Καθαρισμός</p>
-                  {schedule.nextCleaning ? (
-                    <div className="flex items-center gap-1.5 text-slate-200">
-                      <Calendar className="h-3.5 w-3.5 text-slate-400" />
-                      {formatDate(schedule.nextCleaning)}
-                    </div>
-                  ) : (
-                    <span className="text-slate-500">-</span>
+                  <p className="text-slate-500 text-xs">Επόμενος</p>
+                  <p className="text-slate-200 mt-0.5">
+                    {schedule.nextCleaning ? formatDate(schedule.nextCleaning) : '—'}
+                  </p>
+                  {schedule.nextCleaning && (
+                    <p className="text-xs text-slate-500">
+                      {formatRelativeDays(schedule.nextCleaning)}
+                    </p>
                   )}
                 </div>
                 <div>
-                  <p className="text-slate-400 text-xs mb-1">Σημειώσεις</p>
-                  <p className="text-slate-200 truncate">{schedule.notes || '-'}</p>
+                  <p className="text-slate-500 text-xs">Τελευταίος</p>
+                  <p className="text-slate-200 mt-0.5">
+                    {schedule.lastCleaned ? formatDate(schedule.lastCleaned) : 'Ποτέ'}
+                  </p>
+                  {schedule.lastCleaned && (
+                    <p className="text-xs text-slate-500">
+                      {formatRelativeDays(schedule.lastCleaned)}
+                    </p>
+                  )}
                 </div>
               </div>
-              
-              <div className="flex items-center gap-2 pt-2 border-t border-slate-700/50">
+
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <FrequencyBadge frequency={schedule.frequency} />
+                {schedule.assignedCleaner && (
+                  <span className="inline-flex items-center gap-1.5 text-xs text-slate-300">
+                    <User className="h-3.5 w-3.5 text-slate-500" />
+                    {schedule.assignedCleaner}
+                  </span>
+                )}
+              </div>
+
+              {schedule.notes && (
+                <p className="mt-3 flex items-start gap-1.5 text-xs text-slate-400">
+                  <StickyNote className="h-3.5 w-3.5 text-slate-500 flex-shrink-0 mt-0.5" />
+                  {schedule.notes}
+                </p>
+              )}
+
+              <div className="mt-4 flex items-center gap-2">
+                <button
+                  onClick={() => onMarkCleaned(schedule)}
+                  disabled={busy}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 h-10 rounded-xl bg-green-600/90 hover:bg-green-600 text-white text-sm font-semibold transition-colors disabled:opacity-50"
+                >
+                  {busy ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" />
+                  )}
+                  Καθαρίστηκε
+                </button>
                 <button
                   onClick={() => onEdit(schedule)}
-                  className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-700/50 rounded-lg transition-colors flex-1 justify-center"
+                  disabled={busy}
+                  aria-label="Επεξεργασία"
+                  className="h-10 w-10 inline-flex items-center justify-center rounded-xl bg-slate-700/60 text-slate-200 hover:bg-slate-700 transition-colors disabled:opacity-50"
                 >
-                  <Edit className="h-4 w-4 text-blue-400" />
-                  Επεξεργασία
+                  <Edit className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => onDelete(schedule)}
+                  disabled={busy}
+                  aria-label="Διαγραφή"
+                  className="h-10 w-10 inline-flex items-center justify-center rounded-xl bg-slate-700/60 text-red-300 hover:bg-red-500/20 transition-colors disabled:opacity-50"
+                >
+                  <Trash2 className="h-4 w-4" />
                 </button>
               </div>
             </div>
-          ))
-        )}
+          )
+        })}
       </div>
 
-      {/* Desktop Table Layout */}
+      {/* Desktop */}
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-slate-800/60 border-b border-slate-700">
+          <thead className="bg-slate-800 border-b border-slate-700">
             <tr>
-              {[
-                'Ακίνητο',
-                'Συχνότητα',
-                'Υπεύθυνος Καθαρισμού',
-                'Τελευταίος Καθαρισμός',
-                'Επόμενος Καθαρισμός',
-                'Σημειώσεις',
-                'Ενέργειες',
-              ].map((h) => (
-                <th
-                  key={h}
-                  className="px-5 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-left"
-                >
-                  {h}
-                </th>
-              ))}
+              {['Ακίνητο', 'Κατάσταση', 'Επόμενος', 'Τελευταίος', 'Συχνότητα', 'Υπεύθυνος', ''].map(
+                (header, index) => (
+                  <th
+                    key={header || index}
+                    className={`px-5 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider ${
+                      index === 6 ? 'text-right' : 'text-left'
+                    }`}
+                  >
+                    {header}
+                  </th>
+                ),
+              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-700/60">
-            {schedules.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-6 py-16 text-center text-slate-400 text-base">
-                  Δεν βρέθηκαν προγράμματα καθαρισμού
-                </td>
-              </tr>
-            ) : (
-              schedules.map((schedule) => (
+            {schedules.map((schedule) => {
+              const status = getStatus(schedule)
+              const busy = busyId === schedule.id
+
+              return (
                 <tr
                   key={schedule.id}
-                  className="hover:bg-slate-800/40 transition-colors"
+                  className={`group hover:bg-slate-800/60 transition-colors ${
+                    busy ? 'opacity-60' : ''
+                  }`}
                 >
-                  <td className="px-5 py-5">
-                    <p className="text-base font-semibold text-slate-100">
-                      {schedule.property?.titleGr || 'N/A'}
-                    </p>
-                    {schedule.property?.address && (
-                      <p className="text-sm text-slate-400 mt-1">
-                        {schedule.property.address}
-                      </p>
-                    )}
-                  </td>
-                  <td className="px-5 py-5">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-xl ${getFrequencyColor(schedule.frequency)}`}>
-                      {getFrequencyLabel(schedule.frequency)}
-                    </span>
-                  </td>
-                  <td className="px-5 py-5 text-slate-200">
-                    {schedule.assignedCleaner || '-'}
-                  </td>
-                  <td className="px-5 py-5 text-slate-200">
-                    {schedule.lastCleaned ? formatDate(schedule.lastCleaned) : '-'}
-                  </td>
-                  <td className="px-5 py-5">
-                    {schedule.nextCleaning ? (
-                      <div className="flex items-center gap-1.5 text-slate-200">
-                        <Calendar className="h-4 w-4 text-slate-400" />
-                        {formatDate(schedule.nextCleaning)}
+                  <td className="px-5 py-4 max-w-xs">
+                    <div className="flex items-start gap-2.5">
+                      <span
+                        className={`mt-1.5 h-2 w-2 rounded-full flex-shrink-0 ${STATUS_META[status].dot}`}
+                      />
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-slate-100 truncate">
+                          {schedule.property?.titleGr || 'Άγνωστο ακίνητο'}
+                        </p>
+                        {schedule.property?.city && (
+                          <p className="text-xs text-slate-400 mt-0.5 truncate">
+                            {schedule.property.city}
+                            {schedule.property.address ? ` · ${schedule.property.address}` : ''}
+                          </p>
+                        )}
+                        {schedule.notes && (
+                          <p
+                            title={schedule.notes}
+                            className="text-xs text-slate-500 mt-1 flex items-center gap-1.5 truncate"
+                          >
+                            <StickyNote className="h-3 w-3 flex-shrink-0" />
+                            <span className="truncate">{schedule.notes}</span>
+                          </p>
+                        )}
                       </div>
+                    </div>
+                  </td>
+
+                  <td className="px-5 py-4">
+                    <StatusBadge schedule={schedule} />
+                  </td>
+
+                  <td className="px-5 py-4">
+                    {schedule.nextCleaning ? (
+                      <>
+                        <p className="text-sm text-slate-100">
+                          {formatDate(schedule.nextCleaning)}
+                        </p>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          {formatRelativeDays(schedule.nextCleaning)}
+                        </p>
+                      </>
                     ) : (
-                      <span className="text-slate-500">-</span>
+                      <span className="text-sm text-slate-500">—</span>
                     )}
                   </td>
-                  <td className="px-5 py-5">
-                    <p className="text-sm text-slate-400 max-w-xs truncate">
-                      {schedule.notes || '-'}
-                    </p>
+
+                  <td className="px-5 py-4">
+                    {schedule.lastCleaned ? (
+                      <>
+                        <p className="text-sm text-slate-300">{formatDate(schedule.lastCleaned)}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          {formatRelativeDays(schedule.lastCleaned)}
+                        </p>
+                      </>
+                    ) : (
+                      <span className="text-sm text-slate-500">Ποτέ</span>
+                    )}
                   </td>
-                  <td className="px-5 py-5">
-                    <div className="flex items-center gap-2">
+
+                  <td className="px-5 py-4">
+                    <FrequencyBadge frequency={schedule.frequency} />
+                  </td>
+
+                  <td className="px-5 py-4">
+                    {schedule.assignedCleaner ? (
+                      <span className="inline-flex items-center gap-2 text-sm text-slate-200">
+                        <span className="h-6 w-6 rounded-full bg-slate-700 text-[11px] font-bold text-slate-200 flex items-center justify-center flex-shrink-0">
+                          {schedule.assignedCleaner.trim().charAt(0).toUpperCase()}
+                        </span>
+                        {schedule.assignedCleaner}
+                      </span>
+                    ) : (
+                      <span className="text-sm text-slate-500">Χωρίς ανάθεση</span>
+                    )}
+                  </td>
+
+                  <td className="px-5 py-4">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <button
+                        onClick={() => onMarkCleaned(schedule)}
+                        disabled={busy}
+                        title="Καταχώρηση ως καθαρισμένο σήμερα"
+                        className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg bg-green-500/10 text-green-300 border border-green-500/25 text-sm font-semibold hover:bg-green-500/20 transition-colors disabled:opacity-50 whitespace-nowrap"
+                      >
+                        {busy ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Sparkles className="h-4 w-4" />
+                        )}
+                        Καθαρίστηκε
+                      </button>
                       <button
                         onClick={() => onEdit(schedule)}
-                        className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-700/50 rounded-xl transition-colors"
+                        disabled={busy}
+                        title="Επεξεργασία"
+                        aria-label="Επεξεργασία"
+                        className="h-9 w-9 inline-flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-700 hover:text-slate-100 transition-colors disabled:opacity-50"
                       >
-                        <Edit className="h-4 w-4 text-blue-400" />
-                        Επεξεργασία
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => onDelete(schedule)}
+                        disabled={busy}
+                        title="Διαγραφή"
+                        aria-label="Διαγραφή"
+                        className="h-9 w-9 inline-flex items-center justify-center rounded-lg text-slate-400 hover:bg-red-500/15 hover:text-red-300 transition-colors disabled:opacity-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                   </td>
                 </tr>
-              ))
-            )}
+              )
+            })}
           </tbody>
         </table>
       </div>

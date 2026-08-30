@@ -69,9 +69,10 @@ export const servicesApi = {
     });
   },
 
+  // The route is declared as @Post(':id/toggle') on the API.
   async toggleActive(id: string): Promise<{ success: boolean; data: Service }> {
     return apiRequest<{ success: boolean; data: Service }>(`/services/${id}/toggle`, {
-      method: 'PATCH',
+      method: 'POST',
     });
   },
 };

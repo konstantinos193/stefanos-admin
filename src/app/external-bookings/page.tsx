@@ -50,6 +50,35 @@ const SOURCE_COLORS: Record<string, string> = {
   DIRECT: 'bg-emerald-900/40 text-emerald-400',
 }
 
+/**
+ * GET /external-bookings/revenue-by-source returns an object keyed by source
+ * ({ AIRBNB: { totalRevenue, totalBookings, ... } }), not an array, and has no
+ * averageBookingValue. Normalise to the rows this page renders.
+ */
+function normalizeRevenue(data: unknown): RevenueBySource[] {
+  if (!data || typeof data !== 'object') return []
+
+  const entries = Array.isArray(data)
+    ? (data as any[]).map((row) => [row?.source, row] as const)
+    : Object.entries(data as Record<string, any>)
+
+  return entries
+    .filter(([source, value]) => source && value && typeof value === 'object')
+    .map(([source, value]) => {
+      const totalRevenue = Number(value.totalRevenue) || 0
+      const totalBookings = Number(value.totalBookings) || 0
+      return {
+        source: String(source),
+        totalRevenue,
+        totalBookings,
+        averageBookingValue:
+          Number(value.averageBookingValue) ||
+          (totalBookings > 0 ? totalRevenue / totalBookings : 0),
+      }
+    })
+    .sort((a, b) => b.totalRevenue - a.totalRevenue)
+}
+
 const STATUS_COLORS: Record<string, string> = {
   CONFIRMED: 'bg-indigo-900/40 text-indigo-400',
   PENDING: 'bg-yellow-900/40 text-yellow-400',
@@ -83,7 +112,7 @@ export default function ExternalBookingsPage() {
 
       setBookings(bookingsRes?.data?.bookings || bookingsRes?.data || [])
       setTotal(bookingsRes?.data?.pagination?.total || bookingsRes?.data?.length || 0)
-      setRevenueBySource(revenueRes?.data || [])
+      setRevenueBySource(normalizeRevenue(revenueRes?.data))
     } catch (e: any) {
       setError(e?.message || 'Αποτυχία φόρτωσης')
     } finally {

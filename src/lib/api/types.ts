@@ -218,6 +218,8 @@ export interface CleaningSchedule {
   notes: string | null;
   createdAt: string;
   updatedAt: string;
+  /** Derived server-side by GET /cleaning; the UI recomputes it per calendar day. */
+  computedStatus?: 'OVERDUE' | 'DUE_TODAY' | 'UPCOMING' | 'SCHEDULED';
   property?: {
     id: string;
     titleGr: string;
