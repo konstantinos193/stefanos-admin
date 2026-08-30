@@ -57,16 +57,34 @@ export interface ReviewQueryParams {
 }
 
 export const reviewsApi = {
+  /**
+   * Admin listing. GET /reviews is the public route and filters to isPublic:true,
+   * so a hidden review would vanish from the admin panel too and could never be
+   * restored. This route is ADMIN/MANAGER-guarded and returns hidden ones as well.
+   */
   async getAll(params: ReviewQueryParams = {}): Promise<ReviewsResponse> {
     const queryParams = new URLSearchParams();
     if (params.page) queryParams.append('page', params.page.toString());
     if (params.limit) queryParams.append('limit', params.limit.toString());
     if (params.propertyId) queryParams.append('propertyId', params.propertyId);
-    if (params.rating) queryParams.append('rating', params.rating.toString());
-    if (params.minRating) queryParams.append('minRating', params.minRating.toString());
 
     const queryString = queryParams.toString();
-    return apiRequest<ReviewsResponse>(`/reviews${queryString ? `?${queryString}` : ''}`);
+    return apiRequest<ReviewsResponse>(
+      `/reviews/admin/all${queryString ? `?${queryString}` : ''}`,
+    );
+  },
+
+  async setVisibility(id: string, isPublic: boolean): Promise<{ success: boolean }> {
+    return apiRequest<{ success: boolean }>(`/reviews/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isPublic }),
+    });
+  },
+
+  async delete(id: string): Promise<{ success: boolean }> {
+    return apiRequest<{ success: boolean }>(`/reviews/${id}`, {
+      method: 'DELETE',
+    });
   },
 
   async getById(id: string): Promise<{ success: boolean; data: Review }> {
