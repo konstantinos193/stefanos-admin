@@ -1,174 +1,144 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { HelpCircle, Book, MessageCircle, Mail, FileText } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import {
+  CalendarDays,
+  CalendarRange,
+  Sparkles,
+  Building2,
+  BarChart3,
+  ShieldCheck,
+  ChevronDown,
+  Mail,
+  Search,
+  SearchX,
+} from 'lucide-react'
+import { HELP_TOPICS, HelpTopic, SUPPORT_EMAIL } from './helpTopics'
 
-interface HelpSection {
-  id: string
-  title: string
-  description: string
-  icon: string
-  color: string
-  items: string[]
-  content: {
-    overview: string
-    sections: Array<{
-      title: string
-      content: string
-    }>
-  }
+const ICONS: Record<HelpTopic['icon'], typeof CalendarDays> = {
+  bookings: CalendarRange,
+  calendar: CalendarDays,
+  cleaning: Sparkles,
+  properties: Building2,
+  reports: BarChart3,
+  users: ShieldCheck,
 }
 
-export function HelpContent() {
-  const [helpSections, setHelpSections] = useState<HelpSection[]>([])
-  const [loading, setLoading] = useState(true)
+interface HelpContentProps {
+  search: string
+}
 
-  useEffect(() => {
-    const fetchHelpContent = async () => {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/help`)
-        if (response.ok) {
-          const data = await response.json()
-          setHelpSections(data.data.helpSections)
-        } else {
-          // Fallback to static content if API fails
-          setHelpSections([
-            {
-              id: 'getting-started',
-              title: 'Getting Started',
-              description: 'Learn the basics of using the admin panel',
-              icon: 'Book',
-              color: 'bg-blue-500',
-              items: [
-                'How to navigate the admin panel',
-                'Setting up your account',
-                'Understanding the dashboard',
-              ],
-              content: {
-                overview: 'Welcome to the SMH Holdings Admin Panel.',
-                sections: []
-              }
-            },
-            {
-              id: 'user-management',
-              title: 'User Management',
-              description: 'Manage users and their permissions',
-              icon: 'HelpCircle',
-              color: 'bg-green-500',
-              items: [
-                'Adding new users',
-                'Managing user permissions',
-                'User roles and access levels',
-              ],
-              content: {
-                overview: 'User management allows you to control access.',
-                sections: []
-              }
-            },
-            {
-              id: 'property-management',
-              title: 'Property Management',
-              description: 'Manage your properties and listings',
-              icon: 'FileText',
-              color: 'bg-purple-500',
-              items: [
-                'Adding properties',
-                'Editing property details',
-                'Managing property listings',
-              ],
-              content: {
-                overview: 'Property management is the core of your business.',
-                sections: []
-              }
-            },
-            {
-              id: 'bookings',
-              title: 'Bookings',
-              description: 'Manage reservations and bookings',
-              icon: 'MessageCircle',
-              color: 'bg-orange-500',
-              items: [
-                'Creating bookings',
-                'Managing reservations',
-                'Booking status updates',
-              ],
-              content: {
-                overview: 'Booking management helps you track reservations.',
-                sections: []
-              }
-            }
-          ])
-        }
-      } catch (error) {
-        console.error('Failed to fetch help content:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
+export function HelpContent({ search }: HelpContentProps) {
+  const [openTopic, setOpenTopic] = useState<string | null>(HELP_TOPICS[0]?.id ?? null)
 
-    fetchHelpContent()
-  }, [])
+  const topics = useMemo(() => {
+    const query = search.trim().toLowerCase()
+    if (!query) return HELP_TOPICS
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-      </div>
+    return HELP_TOPICS.filter((topic) =>
+      [
+        topic.title,
+        topic.description,
+        ...topic.steps.map((step) => `${step.title} ${step.body}`),
+      ].some((text) => text.toLowerCase().includes(query)),
     )
-  }
-
-  const getIcon = (iconName: string) => {
-    switch (iconName) {
-      case 'Book': return Book
-      case 'HelpCircle': return HelpCircle
-      case 'FileText': return FileText
-      case 'MessageCircle': return MessageCircle
-      default: return HelpCircle
-    }
-  }
+  }, [search])
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {helpSections.map((section) => {
-        const Icon = getIcon(section.icon)
-        return (
-          <div key={section.id} className="card hover:shadow-lg transition-shadow">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className={`${section.color} p-3 rounded-lg`}>
-                <Icon className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">{section.title}</h2>
-                <p className="text-sm text-gray-600">{section.description}</p>
-              </div>
-            </div>
-            <ul className="space-y-2">
-              {section.items.map((item, index) => (
-                <li key={index} className="flex items-center text-sm text-gray-600">
-                  <span className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2"></span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <button className="mt-4 text-sm font-medium text-blue-600 hover:text-blue-700">
-              Learn more →
-            </button>
-          </div>
-        )
-      })}
-      <div className="card bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200">
-        <div className="flex items-center space-x-3 mb-4">
-          <div className="bg-blue-500 p-3 rounded-lg">
-            <Mail className="h-6 w-6 text-white" />
-          </div>
-          <h2 className="text-xl font-bold text-gray-900">Contact Support</h2>
+    <div className="space-y-4">
+      {topics.length === 0 ? (
+        <div className="rounded-2xl bg-slate-800/60 border border-slate-700 py-16 text-center">
+          <SearchX className="h-8 w-8 text-slate-600 mx-auto" />
+          <p className="mt-3 text-base font-semibold text-slate-200">Κανένα αποτέλεσμα</p>
+          <p className="mt-1 text-sm text-slate-400">
+            Δεν βρέθηκε θέμα βοήθειας για «{search}».
+          </p>
         </div>
-        <p className="text-gray-600 mb-4">
-          Can't find what you're looking for? Our support team is here to help.
-        </p>
-        <button className="btn btn-primary w-full">Contact Support</button>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {topics.map((topic) => {
+            const Icon = ICONS[topic.icon]
+            const isOpen = openTopic === topic.id
+
+            return (
+              <div
+                key={topic.id}
+                className="rounded-2xl bg-slate-800/60 border border-slate-700 overflow-hidden h-fit"
+              >
+                <button
+                  onClick={() => setOpenTopic(isOpen ? null : topic.id)}
+                  aria-expanded={isOpen}
+                  className="w-full flex items-start gap-3 p-5 text-left hover:bg-slate-800 transition-colors"
+                >
+                  <div className={`p-2.5 rounded-xl border flex-shrink-0 ${topic.tone}`}>
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-base font-bold text-slate-100">{topic.title}</h2>
+                    <p className="text-sm text-slate-400 mt-0.5">{topic.description}</p>
+                  </div>
+                  <ChevronDown
+                    className={`h-4 w-4 text-slate-400 flex-shrink-0 mt-1 transition-transform ${
+                      isOpen ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+
+                {isOpen && (
+                  <div className="px-5 pb-5 space-y-4 border-t border-slate-700/60 pt-4">
+                    {topic.steps.map((step) => (
+                      <div key={step.title}>
+                        <h3 className="text-sm font-semibold text-slate-200">{step.title}</h3>
+                        <p className="mt-1 text-sm text-slate-400 leading-relaxed">{step.body}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      <div className="rounded-2xl bg-slate-800/60 border border-slate-700 p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="p-2.5 rounded-xl border bg-blue-500/15 text-blue-300 border-blue-500/25 w-fit">
+          <Mail className="h-5 w-5" />
+        </div>
+        <div className="flex-1">
+          <h2 className="text-base font-bold text-slate-100">Χρειάζεστε περισσότερη βοήθεια;</h2>
+          <p className="text-sm text-slate-400 mt-0.5">
+            Αν δεν βρήκατε αυτό που ψάχνετε, στείλτε μας μήνυμα και θα σας απαντήσουμε.
+          </p>
+        </div>
+        <a
+          href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('Υποστήριξη — SMH Admin')}`}
+          className="inline-flex items-center justify-center gap-2 h-11 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-colors"
+        >
+          <Mail className="h-4 w-4" />
+          Επικοινωνία
+        </a>
       </div>
     </div>
   )
 }
 
+export function HelpSearch({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (value: string) => void
+}) {
+  return (
+    <div className="relative">
+      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 pointer-events-none" />
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Αναζήτηση στη βοήθεια..."
+        className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-900 border border-slate-700 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors"
+      />
+    </div>
+  )
+}

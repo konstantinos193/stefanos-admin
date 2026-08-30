@@ -26,6 +26,8 @@ import {
   FileSearch,
   ChevronDown,
   Globe,
+  Hotel,
+  Home,
 } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -44,6 +46,8 @@ interface NavItem {
 
 interface NavSection {
   title: string
+  icon?: typeof LayoutDashboard
+  iconColor?: string
   accent?: string
   activeAccent?: string
   activeBorder?: string
@@ -58,7 +62,9 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    title: '🏨 Incanto Hotel',
+    title: "L'Incanto Apartments",
+    icon: Hotel,
+    iconColor: 'text-orange-400',
     accent: 'border-l-orange-500/40',
     activeAccent: 'bg-orange-500/15 text-orange-400',
     activeBorder: 'border-orange-500/20',
@@ -74,7 +80,9 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    title: '🏠 Stefanos Real Estate',
+    title: 'SMH Holdings',
+    icon: Home,
+    iconColor: 'text-purple-400',
     accent: 'border-l-purple-500/40',
     activeAccent: 'bg-purple-500/15 text-purple-400',
     activeBorder: 'border-purple-500/20',
@@ -186,15 +194,23 @@ function ExpandedNav({ pathname }: { pathname: string }) {
       {navSections.map((section) => {
         const isBusiness = !!section.accent
         const isOpen = isBusiness ? (expanded[section.title] ?? false) : true
+        const SectionIcon = section.icon
 
         return (
           <div key={section.title}>
             {isBusiness ? (
               <button
                 onClick={() => toggle(section.title)}
-                className="w-full flex items-center justify-between px-3 mb-2 text-xs font-bold uppercase tracking-widest text-slate-300 hover:text-slate-100 transition-colors duration-150"
+                className="w-full flex items-center justify-between gap-2 px-3 mb-2 text-xs font-bold uppercase tracking-widest text-slate-300 hover:text-slate-100 transition-colors duration-150"
               >
-                <span>{section.title}</span>
+                <span className="flex items-center gap-2 min-w-0">
+                  {SectionIcon && (
+                    <SectionIcon
+                      className={clsx('h-4 w-4 shrink-0', section.iconColor ?? 'text-slate-500')}
+                    />
+                  )}
+                  <span className="truncate">{section.title}</span>
+                </span>
                 <ChevronDown
                   className={clsx(
                     'h-3.5 w-3.5 text-slate-500 transition-transform duration-200',

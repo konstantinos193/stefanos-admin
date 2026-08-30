@@ -71,7 +71,7 @@ export function HotelActions() {
           <Calendar className="h-7 w-7 text-orange-400" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-slate-100">Incanto Hotel</h2>
+          <h2 className="text-xl font-bold text-slate-100">L&apos;Incanto Apartments</h2>
           <p className="text-sm text-slate-400">Διαχείριση ξενοδοχείου & κρατήσεων</p>
         </div>
       </div>
